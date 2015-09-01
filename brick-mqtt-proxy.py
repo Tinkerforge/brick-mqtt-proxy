@@ -521,14 +521,10 @@ class Proxy(object):
             self.publish_enumerate(uid, True)
 
     def mqtt_on_connect(self, client, user_data, flags, result_code):
-        print 'mqtt_on_connect', flags, result_code
-
         if result_code == 0:
             self.ipcon.connect(self.brickd_host, self.brickd_port)
 
     def mqtt_on_disconnect(self, client, user_data, result_code):
-        print 'mqtt_on_disconnect', result_code
-
         self.ipcon.disconnect()
 
         for uid in self.device_proxies:
@@ -537,8 +533,6 @@ class Proxy(object):
         self.device_proxies = {}
 
     def mqtt_on_message(self, client, user_data, message):
-        print 'mqtt_on_message', message.payload, message.topic
-
         if message.topic.startswith('bricklet/'):
             topic_prefix1, topic_prefix2, uid, topic_suffix = message.topic.split('/', 3)
             topic_prefix = topic_prefix1 + '/' + topic_prefix2
