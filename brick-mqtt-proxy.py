@@ -73,7 +73,7 @@ class Getter(object):
         if result != None and result != self.last_result:
             payload = {}
 
-            if isinstance(result, tuple): # assume it's a namedtuple
+            if isinstance(result, tuple) and hasattr(result, '_fields'): # assume it is a namedtuple
                 for field in result._fields:
                     payload[field] = getattr(result, field)
             else:
