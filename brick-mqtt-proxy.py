@@ -84,17 +84,17 @@ class Getter(object):
         self.last_result = result
 
 class Setter(object):
-    def __init__(self, proxy, setter_name, topic_suffix, parameters):
+    def __init__(self, proxy, setter_name, topic_suffix, parameter_names):
         self.setter = getattr(proxy.device, setter_name)
         self.topic_suffix = topic_suffix
-        self.parameters = parameters
+        self.parameter_names = parameter_names
 
     def handle_message(self, payload):
         args = []
 
-        for parameter in self.parameters:
+        for parameter_name in self.parameter_names:
             try:
-                args.append(parameter[1](payload[parameter[0]]))
+                args.append(payload[parameter_name])
             except:
                 return
 
@@ -265,15 +265,14 @@ class DeviceProxy(object):
 #   and handles messages with JSON payloads that contain key-value pairs
 #   according to the specified format. Each setter specification is a 3-tuple:
 #
-#     (<setter-name>, <topic-suffix>, [(<value-name>, <value-type>), ...])
+#     (<setter-name>, <topic-suffix>, [<parameter-name>, ...])
 #
 #   If the setter has no parameters then the third item in the tuple can be an
-#   empty list. Otherwise it has to be a list of 2-tuples specifying parameter
-#   names and types. The DeviceProxy instance looks for keys in the JSON
-#   payload that match the specified values names and tries to convert them to
-#   the specified types. If a proper values was found for each parameter then
-#   the specified setter is called on self.device with the arguments from the
-#   JSON payload.
+#   empty list. Otherwise it has to be a list of strings specifying parameter
+#   names for the setter. The DeviceProxy instance looks for keys in the JSON
+#   payload that match the specified values names. If a value was found for
+#   each parameter then the specified setter is called on self.device with the
+#   arguments from the JSON payload.
 #
 # - EXTRA_SUBSCRIPTIONS (optional): A list of additional topic suffixes. This
 #   can be used to implement things that don't fit into a setter specification.
@@ -296,7 +295,7 @@ class BrickletAccelerometerProxy(DeviceProxy):
                     ('get_temperature', 'temperature', 'temperature'),
                     ('get_configuration', 'configuration', None),
                     ('is_led_on', 'led_on', 'on')]
-    SETTER_SPECS = [('set_configuration', 'configuration/set', [('data_rate', int), ('full_scale', int), ('filter_bandwidth', int)]),
+    SETTER_SPECS = [('set_configuration', 'configuration/set', ['data_rate', 'full_scale', 'filter_bandwidth']),
                     ('led_on', 'led_on/set', []),
                     ('led_off', 'led_off/set', [])]
 
@@ -310,7 +309,7 @@ class BrickletAmbientLightV2Proxy(DeviceProxy):
     TOPIC_PREFIX = 'bricklet/ambient_light_v2'
     GETTER_SPECS = [('get_illuminance', 'illuminance', 'illuminance'),
                     ('get_configuration', 'configuration', None)]
-    SETTER_SPECS = [('set_configuration', 'configuration/set', [('illuminance_range', int), ('integration_time', int)])]
+    SETTER_SPECS = [('set_configuration', 'configuration/set', ['illuminance_range', 'integration_time'])]
 
 class BrickletAnalogInProxy(DeviceProxy):
     DEVICE_CLASS = BrickletAnalogIn
@@ -318,30 +317,30 @@ class BrickletAnalogInProxy(DeviceProxy):
     GETTER_SPECS = [('get_voltage', 'voltage', 'voltage'),
                     ('get_range', 'range', 'range'),
                     ('get_averaging', 'averaging', 'average')]
-    SETTER_SPECS = [('set_range', 'range/set', [('range', int)]),
-                    ('set_averaging', 'averaging/set', [('average', int)])]
+    SETTER_SPECS = [('set_range', 'range/set', ['range']),
+                    ('set_averaging', 'averaging/set', ['average'])]
 
 class BrickletAnalogInV2Proxy(DeviceProxy):
     DEVICE_CLASS = BrickletAnalogInV2
     TOPIC_PREFIX = 'bricklet/analog_in_v2'
     GETTER_SPECS = [('get_voltage', 'voltage', 'voltage'),
                     ('get_moving_average', 'moving_average', 'average')]
-    SETTER_SPECS = [('set_moving_average', 'moving_average/set', [('average', int)])]
+    SETTER_SPECS = [('set_moving_average', 'moving_average/set', ['average'])]
 
 class BrickletAnalogOutProxy(DeviceProxy):
     DEVICE_CLASS = BrickletAnalogOut
     TOPIC_PREFIX = 'bricklet/analog_out'
     GETTER_SPECS = [('get_voltage', 'voltage', 'voltage'),
                     ('get_mode', 'mode', 'mode')]
-    SETTER_SPECS = [('set_voltage', 'voltage/set', [('voltage', int)]),
-                    ('set_mode', 'mode/set', [('mode', int)])]
+    SETTER_SPECS = [('set_voltage', 'voltage/set', ['voltage']),
+                    ('set_mode', 'mode/set', ['mode'])]
 
 class BrickletAnalogOutV2Proxy(DeviceProxy):
     DEVICE_CLASS = BrickletAnalogOutV2
     TOPIC_PREFIX = 'bricklet/analog_out_v2'
     GETTER_SPECS = [('get_output_voltage', 'output_voltage', 'voltage'),
                     ('get_input_voltage', 'input_voltage', 'voltage')]
-    SETTER_SPECS = [('set_output_voltage', 'output_voltage/set', [('voltage', int)])]
+    SETTER_SPECS = [('set_output_voltage', 'output_voltage/set', ['voltage'])]
 
 class BrickletBarometerProxy(DeviceProxy):
     DEVICE_CLASS = BrickletBarometer
@@ -349,8 +348,10 @@ class BrickletBarometerProxy(DeviceProxy):
     GETTER_SPECS = [('get_air_pressure', 'air_pressure', 'air_pressure'),
                     ('get_altitude', 'altitude', 'altitude'),
                     ('get_chip_temperature', 'chip_temperature', 'temperature'),
-                    ('get_reference_air_pressure', 'reference_air_pressure', 'air_pressure')]
-    SETTER_SPECS = [('set_reference_air_pressure', 'reference_air_pressure/set', [('air_pressure', int)])]
+                    ('get_reference_air_pressure', 'reference_air_pressure', 'air_pressure'),
+                    ('get_averaging', 'averaging', None)]
+    SETTER_SPECS = [('set_reference_air_pressure', 'reference_air_pressure/set', ['air_pressure']),
+                    ('set_averaging', 'averaging/set', ['moving_average_pressure', 'average_pressure', 'average_temperature'])]
 
 class BrickletColorProxy(DeviceProxy):
     DEVICE_CLASS = BrickletColor
@@ -360,7 +361,7 @@ class BrickletColorProxy(DeviceProxy):
                     ('get_color_temperature', 'color_temperature', 'color_temperature'),
                     ('get_config', 'config', None),
                     ('is_light_on', 'light_on', 'light')]
-    SETTER_SPECS = [('set_config', 'config/set', [('gain', int), ('integration_time', int)]),
+    SETTER_SPECS = [('set_config', 'config/set', ['gain', 'integration_time']),
                     ('light_on', 'light_on/set', []),
                     ('light_off', 'light_off/set', [])]
 
@@ -388,24 +389,24 @@ class BrickletDualButtonProxy(DeviceProxy):
     DEVICE_CLASS = BrickletDualButton
     TOPIC_PREFIX = 'bricklet/dual_button'
     GETTER_SPECS = [('get_led_state', 'led_state', None)]
-    SETTER_SPECS = [('set_led_state', 'led_state/set', [('led_l', int), ('led_r', int)]),
-                    ('set_selected_led_state', 'selected_led_state/set', [('led', int), ('state', int)])]
+    SETTER_SPECS = [('set_led_state', 'led_state/set', ['led_l', 'led_r']),
+                    ('set_selected_led_state', 'selected_led_state/set', ['led', 'state'])]
 
 class BrickletDualRelayProxy(DeviceProxy):
     DEVICE_CLASS = BrickletDualRelay
     TOPIC_PREFIX = 'bricklet/dual_relay'
     GETTER_SPECS = [('get_state', 'state', None),
                     ('get_monoflop', 'monoflop', None)]
-    SETTER_SPECS = [('set_state', 'state/set', [('relay1', bool), ('relay2', bool)]),
-                    ('set_monoflop', 'monoflop/set', [('relay', int), ('state', bool), ('time', int)]),
-                    ('set_selected_state', 'selected_state/set', [('relay', int), ('state', bool)])]
+    SETTER_SPECS = [('set_state', 'state/set', ['relay1', 'relay2']),
+                    ('set_monoflop', 'monoflop/set', ['relay', 'state', 'time']),
+                    ('set_selected_state', 'selected_state/set', ['relay', 'state'])]
 
 class BrickletDustDetectorProxy(DeviceProxy):
     DEVICE_CLASS = BrickletDustDetector
     TOPIC_PREFIX = 'bricklet/dust_detector'
     GETTER_SPECS = [('get_dust_density', 'dust_density', 'dust_density'),
                     ('get_moving_average', 'moving_average', 'average')]
-    SETTER_SPECS = [('set_moving_average', 'moving_average/set', [('average', int)])]
+    SETTER_SPECS = [('set_moving_average', 'moving_average/set', ['average'])]
 
 class BrickletHumidityProxy(DeviceProxy):
     DEVICE_CLASS = BrickletHumidity
@@ -415,11 +416,17 @@ class BrickletHumidityProxy(DeviceProxy):
 class BrickletLCD20x4Proxy(DeviceProxy):
     DEVICE_CLASS = BrickletLCD20x4
     TOPIC_PREFIX = 'bricklet/lcd_20x4'
-    GETTER_SPECS = [('is_backlight_on', 'backlight_on', 'backlight')]
-    SETTER_SPECS = [('write_line', 'write_line/set', [('line', int), ('position', int), ('text', str)]),
+    GETTER_SPECS = [('is_backlight_on', 'backlight_on', 'backlight'),
+                    ('get_config', 'config', None),
+                    ('get_default_text_counter', 'default_text_counter', 'counter')]
+    SETTER_SPECS = [('write_line', 'write_line/set', ['line', 'position', 'text']),
                     ('clear_display', 'clear_display/set', []),
                     ('backlight_on', 'backlight_on/set', []),
-                    ('backlight_off', 'backlight_off/set', [])]
+                    ('backlight_off', 'backlight_off/set', []),
+                    ('set_config', 'config/set', ['cursor', 'blinking']),
+                    ('set_custom_character', 'custom_character/set', ['index', 'character']),
+                    ('set_default_text', 'default_text/set', ['line', 'text']),
+                    ('set_default_text_counter', 'default_text_counter/set', ['counter'])]
 
 class BrickletTemperatureProxy(DeviceProxy):
     DEVICE_CLASS = BrickletTemperature
@@ -432,7 +439,7 @@ class BrickletTemperatureIRProxy(DeviceProxy):
     GETTER_SPECS = [('get_ambient_temperature', 'ambient_temperature', 'temperature'),
                     ('get_object_temperature', 'object_temperature', 'temperature'),
                     ('get_emissivity', 'emissivity', 'emissivity')]
-    SETTER_SPECS = [('set_emissivity', 'emissivity/set', [('emissivity', int)])]
+    SETTER_SPECS = [('set_emissivity', 'emissivity/set', ['emissivity'])]
 
 class Proxy(object):
     def __init__(self, brickd_host, brickd_port, broker_host, broker_port, update_interval):
