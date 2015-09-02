@@ -24,8 +24,9 @@ BRICKD_HOST = 'localhost'
 BRICKD_PORT = 4223
 BROKER_HOST = 'localhost'
 BROKER_PORT = 1883
-ENUMERATE_INTERVAL = 15.0 # seconds
+GLOBAL_TOPIC_PREFIX = 'tinkerforge/'
 UPDATE_INTERVAL = 3.0 # seconds
+ENUMERATE_INTERVAL = 15.0 # seconds
 
 import argparse
 import json
@@ -33,6 +34,7 @@ import struct
 import sys
 import time
 import threading
+import logging
 import paho.mqtt.client as mqtt # pip install paho-mqtt
 from tinkerforge.ip_connection import IPConnection
 from tinkerforge.bricklet_accelerometer import BrickletAccelerometer
@@ -131,12 +133,12 @@ class DeviceProxy(object):
 
         for setter_spec in self.SETTER_SPECS:
             self.setters[setter_spec[1]] = Setter(self, *setter_spec)
-            self.client.subscribe(self.topic_prefix + setter_spec[1])
+            self.subscribe(self.topic_prefix + setter_spec[1])
 
         for topic_suffix in self.EXTRA_SUBSCRIPTIONS:
-            self.client.subscribe(self.topic_prefix + topic_suffix)
+            self.subscribe(self.topic_prefix + topic_suffix)
 
-        self.client.subscribe(self.topic_prefix + '_update_interval/set')
+        self.subscribe(self.topic_prefix + '_update_interval/set')
 
         self.set_update_interval(update_interval)
         self.update_locked()
@@ -158,7 +160,9 @@ class DeviceProxy(object):
         self.update_locked()
 
     def publish_as_json(self, topic, payload, *args, **kwargs):
-        self.client.publish(topic, json.dumps(payload, separators=(',', ':')), *args, **kwargs)
+        self.client.publish(GLOBAL_TOPIC_PREFIX + topic,
+                            json.dumps(payload, separators=(',', ':')),
+                            *args, **kwargs)
 
     def publish_values(self, topic_suffix, **kwargs):
         payload = {'_timestamp': time.time()}
@@ -211,13 +215,28 @@ class DeviceProxy(object):
                 'firmware_version': self.firmware_version,
                 'device_identifier': self.DEVICE_CLASS.DEVICE_IDENTIFIER}
 
+    def subscribe(self, topic_suffix):
+        topic = GLOBAL_TOPIC_PREFIX + topic_suffix
+
+        logging.debug('Subscribing to ' + topic)
+        self.client.subscribe(topic)
+
+    def unsubscribe(self, topic_suffix):
+        topic = GLOBAL_TOPIC_PREFIX + topic_suffix
+
+        logging.debug('Unsubscribing from ' + topic)
+        self.client.unsubscribe(topic)
+
     def destroy(self):
         self.set_update_interval(0)
 
         for setter_spec in self.SETTER_SPECS:
-            self.client.unsubscribe(self.topic_prefix + setter_spec[1])
+            self.unsubscribe(self.topic_prefix + setter_spec[1])
 
-        self.client.unsubscribe(self.topic_prefix + '_update_interval/set')
+        for topic_suffix in self.EXTRA_SUBSCRIPTIONS:
+            self.unsubscribe(self.topic_prefix + topic_suffix)
+
+        self.unsubscribe(self.topic_prefix + '_update_interval/set')
 
 #
 # DeviceProxy is the base class for all Brick and Bricklet MQTT handling. The
@@ -232,7 +251,7 @@ class DeviceProxy(object):
 #   will automatically be prefixed with the topic prefix and the UID of the
 #   represented device:
 #
-#     <topic-prefix>/<uid>/<topic-suffix>
+#     tinkerforge/<topic-prefix>/<uid>/<topic-suffix>
 #
 #   Also all subscriptions for any topic suffix will automatically be prefixed
 #   with the same topic prefix.
@@ -481,7 +500,9 @@ class Proxy(object):
         self.client.loop_stop()
 
     def publish_as_json(self, topic, payload, *args, **kwargs):
-        self.client.publish(topic, json.dumps(payload, separators=(',',':')), *args, **kwargs)
+        self.client.publish(GLOBAL_TOPIC_PREFIX + topic,
+                            json.dumps(payload, separators=(',',':')),
+                            *args, **kwargs)
 
     def publish_enumerate(self, changed_uid, connected):
         device_proxy = self.device_proxies[changed_uid]
@@ -533,8 +554,12 @@ class Proxy(object):
         self.device_proxies = {}
 
     def mqtt_on_message(self, client, user_data, message):
-        if message.topic.startswith('bricklet/'):
-            topic_prefix1, topic_prefix2, uid, topic_suffix = message.topic.split('/', 3)
+        logging.debug('Received message for topic ' + message.topic)
+
+        topic = message.topic[len(GLOBAL_TOPIC_PREFIX):]
+
+        if topic.startswith('brick/') or topic.startswith('bricklet/'):
+            topic_prefix1, topic_prefix2, uid, topic_suffix = topic.split('/', 3)
             topic_prefix = topic_prefix1 + '/' + topic_prefix2
 
             if uid in self.device_proxies and topic_prefix == self.device_proxies[uid].TOPIC_PREFIX:
@@ -542,16 +567,20 @@ class Proxy(object):
 
                 if len(payload) > 0:
                     try:
-                        payload = json.loads(message.payload)
+                        payload = json.loads(message.payload.decode('UTF-8'))
                     except:
-                        print 'invalid payload' # FIXME
+                        logging.warn('Received message with invalid payload for topic ' + message.topic) # FIXME
                         return
                 else:
                     payload = {}
 
                 self.device_proxies[uid].handle_message(topic_suffix, payload)
+                return
+
+        logging.debug('Unknown topic ' + message.topic)
 
 if __name__ == '__main__':
+
     parser = argparse.ArgumentParser(description='Brick MQTT Proxy')
     parser.add_argument('--brickd-host', dest='brickd_host', type=str, default=BRICKD_HOST,
                         help='hostname or IP address of Brick Daemon, WIFI or Ethernet Extension (default: {0})'.format(BRICKD_HOST))
@@ -563,8 +592,12 @@ if __name__ == '__main__':
                         help='port number of MQTT broker (default: {0})'.format(BROKER_PORT))
     parser.add_argument('--update-interval', dest='update_interval', type=int, default=UPDATE_INTERVAL,
                         help='update interval in seconds (default: {0})'.format(UPDATE_INTERVAL))
+    parser.add_argument('--debug', dest='debug', action='store_true', help='enable debug output')
 
     args = parser.parse_args(sys.argv[1:])
+
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
 
     proxy = Proxy(args.brickd_host, args.brickd_port, args.broker_host, args.broker_port, args.update_interval)
     proxy.connect()
