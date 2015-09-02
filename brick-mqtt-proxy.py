@@ -331,7 +331,7 @@ class DeviceProxy(object):
 #   can be used to implement things that don't fit into a setter specification.
 #   The DeviceProxy instance automatically subscribes to the specified topics
 #   and handles messages with JSON payloads. The payload is decoded as JSON and
-#   passed to the bound handle_message function.
+#   passed to the bound handle_extra_message function.
 #
 # - handle_extra_message (optional): A bound function taking two arguments: the
 #   topic suffix as str and the decoded JSON payload as dict.
