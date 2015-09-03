@@ -11,7 +11,7 @@ The following Python libraries are required:
 * tinkerforge
 * paho-mqtt
 
-Those can be installed using ``pip`` (run with sudo on Linux)
+Those can be installed using ``pip`` (run with sudo on Linux)::
 
  pip install tinkerforge paho-mqtt
 
