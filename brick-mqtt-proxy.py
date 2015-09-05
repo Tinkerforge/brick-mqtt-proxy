@@ -77,7 +77,7 @@ from tinkerforge.bricklet_motion_detector import BrickletMotionDetector
 # FIXME: Multi Touch Bricklet not handled yet
 # FIXME: NFC/RFID Bricklet not handled yet
 # FIXME: Piezo Buzzer Bricklet not handled yet
-# FIXME: Piezo Speaker Bricklet not handled yet
+from tinkerforge.bricklet_piezo_speaker import BrickletPiezoSpeaker
 from tinkerforge.bricklet_ptc import BrickletPTC
 from tinkerforge.bricklet_remote_switch import BrickletRemoteSwitch
 # FIXME: Rotary Encoder Bricklet not handled yet
@@ -681,7 +681,12 @@ class BrickletMotionDetectorProxy(DeviceProxy):
 
 # FIXME: Piezo Buzzer Bricklet not handled yet
 
-# FIXME: Piezo Speaker Bricklet not handled yet
+class BrickletPiezoSpeakerProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletPiezoSpeaker
+    TOPIC_PREFIX = 'bricklet/piezo_speaker'
+#    GETTER_SPECS = [()]
+    SETTER_SPECS = [('beep', 'beep/set', ['duration', 'frequency']),
+                    ('morse_code', 'morse_code/set', ['morse', 'frequency'])]
 
 class BrickletPTCProxy(DeviceProxy):
     DEVICE_CLASS = BrickletPTC
