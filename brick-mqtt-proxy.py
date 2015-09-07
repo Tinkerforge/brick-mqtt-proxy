@@ -681,10 +681,11 @@ class BrickletMotionDetectorProxy(DeviceProxy):
 
 # FIXME: Piezo Buzzer Bricklet not handled yet
 
+# FIXME: handle beep_finished and morse_code_finished callback?
+# FIXME: expose calibrate setter?
 class BrickletPiezoSpeakerProxy(DeviceProxy):
     DEVICE_CLASS = BrickletPiezoSpeaker
     TOPIC_PREFIX = 'bricklet/piezo_speaker'
-#    GETTER_SPECS = [()]
     SETTER_SPECS = [('beep', 'beep/set', ['duration', 'frequency']),
                     ('morse_code', 'morse_code/set', ['morse', 'frequency'])]
 
