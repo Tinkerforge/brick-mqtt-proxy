@@ -177,6 +177,8 @@ class DeviceProxy(object):
         self.set_update_interval(update_interval)
         self.update_locked()
 
+        self.setup_callbacks()
+
     def handle_extra_message(self, topic_suffix, payload): # to be implemented by subclasses
         pass
 
@@ -239,6 +241,9 @@ class DeviceProxy(object):
         if self.update_interval > 0:
             self.update_timer = threading.Timer(self.update_interval, self.update)
             self.update_timer.start()
+
+    def setup_callbacks(self): # to be implemented by subclasses
+        pass
 
     def get_enumerate_entry(self):
         return {'_timestamp': self.timestamp,
@@ -335,6 +340,10 @@ class DeviceProxy(object):
 #
 # - handle_extra_message (optional): A bound function taking two arguments: the
 #   topic suffix as str and the decoded JSON payload as dict.
+#
+# - setup_callbacks (optional): A bound function taking no arguments. This can
+#   be used to deal with callbacks such as the button pressed/released callbacks
+#   of the LCD 20x4 Bricklet.
 #
 # To add a new DeviceProxy subclass implement it according to the description
 # above. The Proxy class will automatically pick up all DeviceProxy subclasses
@@ -595,13 +604,37 @@ class BrickletIO4Proxy(DeviceProxy):
                     ('set_edge_count_config', 'edge_count_config/set', ['edge_type', 'debounce'])]
 
 # FIXME: expose analog_value getter?
-# FIXME: handle pressed and released callbacks?
 class BrickletJoystickProxy(DeviceProxy):
     DEVICE_CLASS = BrickletJoystick
     TOPIC_PREFIX = 'bricklet/joystick'
-    GETTER_SPECS = [('get_position', 'position', None),
-                    ('is_pressed', 'pressed', 'pressed')]
+    GETTER_SPECS = [('get_position', 'position', None)]
     SETTER_SPECS = [('calibrate', 'calibrate/set', [])]
+
+    def cb_pressed(self):
+        with self.update_lock:
+            self.last_pressed['pressed'] = True
+            self.publish_values('pressed', **self.last_pressed)
+
+    def cb_released(self):
+        with self.update_lock:
+            self.last_pressed['pressed'] = False
+            self.publish_values('pressed', **self.last_pressed)
+
+    def setup_callbacks(self):
+        self.last_pressed = {'pressed': False}
+
+        try:
+            self.last_pressed['pressed'] = self.device.is_pressed()
+        except:
+            pass
+
+        self.device.register_callback(BrickletJoystick.CALLBACK_PRESSED,
+                                      self.cb_pressed)
+        self.device.register_callback(BrickletJoystick.CALLBACK_RELEASED,
+                                      self.cb_released)
+
+        with self.update_lock:
+            self.publish_values('pressed', **self.last_pressed)
 
 class BrickletLaserRangeFinderProxy(DeviceProxy):
     DEVICE_CLASS = BrickletLaserRangeFinder
@@ -616,8 +649,7 @@ class BrickletLaserRangeFinderProxy(DeviceProxy):
                     ('disable_laser', 'disable_laser/set', []),
                     ('set_moving_average', 'moving_average/set', ['distance_average_length', 'velocity_average_length'])]
 
-# FIXME: is_button_pressed and get_custom_character need special handling
-# FIXME: handle button_pressed and button_released callbacks?
+# FIXME: get_custom_character needs special handling
 class BrickletLCD16x2Proxy(DeviceProxy):
     DEVICE_CLASS = BrickletLCD16x2
     TOPIC_PREFIX = 'bricklet/lcd_16x2'
@@ -630,8 +662,34 @@ class BrickletLCD16x2Proxy(DeviceProxy):
                     ('set_config', 'config/set', ['cursor', 'blinking']),
                     ('set_custom_character', 'custom_character/set', ['index', 'character'])]
 
-# FIXME: is_button_pressed, get_custom_character and get_default_text need special handling
-# FIXME: handle button_pressed and button_released callbacks?
+    def cb_button_pressed(self, button):
+        with self.update_lock:
+            self.last_button_pressed[str(button)] = True
+            self.publish_values('button_pressed', **self.last_button_pressed)
+
+    def cb_button_released(self, button):
+        with self.update_lock:
+            self.last_button_pressed[str(button)] = False
+            self.publish_values('button_pressed', **self.last_button_pressed)
+
+    def setup_callbacks(self):
+        self.last_button_pressed = {'0': False, '1': False, '2': False}
+
+        for button in range(3):
+            try:
+                self.last_button_pressed[str(button)] = self.device.is_button_pressed(button)
+            except:
+                pass
+
+        self.device.register_callback(BrickletLCD16x2.CALLBACK_BUTTON_PRESSED,
+                                      self.cb_button_pressed)
+        self.device.register_callback(BrickletLCD16x2.CALLBACK_BUTTON_RELEASED,
+                                      self.cb_button_released)
+
+        with self.update_lock:
+            self.publish_values('button_pressed', **self.last_button_pressed)
+
+# FIXME: get_custom_character and get_default_text need special handling
 class BrickletLCD20x4Proxy(DeviceProxy):
     DEVICE_CLASS = BrickletLCD20x4
     TOPIC_PREFIX = 'bricklet/lcd_20x4'
@@ -646,6 +704,33 @@ class BrickletLCD20x4Proxy(DeviceProxy):
                     ('set_custom_character', 'custom_character/set', ['index', 'character']),
                     ('set_default_text', 'default_text/set', ['line', 'text']),
                     ('set_default_text_counter', 'default_text_counter/set', ['counter'])]
+
+    def cb_button_pressed(self, button):
+        with self.update_lock:
+            self.last_button_pressed[str(button)] = True
+            self.publish_values('button_pressed', **self.last_button_pressed)
+
+    def cb_button_released(self, button):
+        with self.update_lock:
+            self.last_button_pressed[str(button)] = False
+            self.publish_values('button_pressed', **self.last_button_pressed)
+
+    def setup_callbacks(self):
+        self.last_button_pressed = {'0': False, '1': False, '2': False, '3': False}
+
+        for button in range(4):
+            try:
+                self.last_button_pressed[str(button)] = self.device.is_button_pressed(button)
+            except:
+                pass
+
+        self.device.register_callback(BrickletLCD20x4.CALLBACK_BUTTON_PRESSED,
+                                      self.cb_button_pressed)
+        self.device.register_callback(BrickletLCD20x4.CALLBACK_BUTTON_RELEASED,
+                                      self.cb_button_released)
+
+        with self.update_lock:
+            self.publish_values('button_pressed', **self.last_button_pressed)
 
 # FIXME: LED Strip Bricklet not handled yet
 
@@ -669,7 +754,7 @@ class BrickletMoistureProxy(DeviceProxy):
                     ('get_moving_average', 'moving_average', 'average')]
     SETTER_SPECS = [('set_moving_average', 'moving_average/set', ['average'])]
 
-# FIXME: handle button_pressed and button_released callbacks?
+# FIXME: handle motion_detected and detection_cycle_ended callbacks?
 class BrickletMotionDetectorProxy(DeviceProxy):
     DEVICE_CLASS = BrickletMotionDetector
     TOPIC_PREFIX = 'bricklet/motion_detector'
