@@ -981,7 +981,6 @@ class Proxy(object):
         logging.debug('Unknown topic ' + message.topic)
 
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser(description='Brick MQTT Proxy')
     parser.add_argument('--brickd-host', dest='brickd_host', type=str, default=BRICKD_HOST,
                         help='hostname or IP address of Brick Daemon, WIFI or Ethernet Extension (default: {0})'.format(BRICKD_HOST))
