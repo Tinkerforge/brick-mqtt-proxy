@@ -89,6 +89,7 @@ from tinkerforge.bricklet_sound_intensity import BrickletSoundIntensity
 from tinkerforge.bricklet_temperature import BrickletTemperature
 from tinkerforge.bricklet_temperature_ir import BrickletTemperatureIR
 from tinkerforge.bricklet_tilt import BrickletTilt
+from tinkerforge.bricklet_uv_light import BrickletUVLight
 from tinkerforge.bricklet_voltage import BrickletVoltage
 from tinkerforge.bricklet_voltage_current import BrickletVoltageCurrent
 
@@ -843,6 +844,11 @@ class BrickletTiltProxy(DeviceProxy):
     DEVICE_CLASS = BrickletTilt
     TOPIC_PREFIX = 'bricklet/tilt'
     GETTER_SPECS = [('get_tilt_state', 'tilt_state', 'state')]
+
+class BrickletUVLightProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletUVLight
+    TOPIC_PREFIX = 'bricklet/uv_light'
+    GETTER_SPECS = [('get_uv_light', 'uv_light', 'intensity')]
 
 # FIXME: expose analog_value getter?
 class BrickletVoltageProxy(DeviceProxy):
