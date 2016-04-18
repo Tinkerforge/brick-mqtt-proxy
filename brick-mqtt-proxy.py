@@ -848,7 +848,7 @@ class BrickletTiltProxy(DeviceProxy):
 class BrickletUVLightProxy(DeviceProxy):
     DEVICE_CLASS = BrickletUVLight
     TOPIC_PREFIX = 'bricklet/uv_light'
-    GETTER_SPECS = [('get_uv_light', 'uv_light', 'intensity')]
+    GETTER_SPECS = [('get_uv_light', 'uv_light', 'uv_light')]
 
 # FIXME: expose analog_value getter?
 class BrickletVoltageProxy(DeviceProxy):
