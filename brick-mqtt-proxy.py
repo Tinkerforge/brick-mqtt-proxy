@@ -71,7 +71,7 @@ from tinkerforge.bricklet_lcd_20x4 import BrickletLCD20x4
 # FIXME: LED Strip Bricklet not handled yet
 from tinkerforge.bricklet_line import BrickletLine
 from tinkerforge.bricklet_linear_poti import BrickletLinearPoti
-# FIXME: Load Cell Bricklet not handled yet
+from tinkerforge.bricklet_load_cell import BrickletLoadCell
 from tinkerforge.bricklet_moisture import BrickletMoisture
 from tinkerforge.bricklet_motion_detector import BrickletMotionDetector
 # FIXME: Multi Touch Bricklet not handled yet
@@ -79,6 +79,7 @@ from tinkerforge.bricklet_motion_detector import BrickletMotionDetector
 # FIXME: Piezo Buzzer Bricklet not handled yet
 from tinkerforge.bricklet_piezo_speaker import BrickletPiezoSpeaker
 from tinkerforge.bricklet_ptc import BrickletPTC
+from tinkerforge.bricklet_real_time_clock import BrickletRealTimeClock
 from tinkerforge.bricklet_remote_switch import BrickletRemoteSwitch
 # FIXME: Rotary Encoder Bricklet not handled yet
 from tinkerforge.bricklet_rotary_poti import BrickletRotaryPoti
@@ -746,7 +747,18 @@ class BrickletLinearPotiProxy(DeviceProxy):
     TOPIC_PREFIX = 'bricklet/linear_poti'
     GETTER_SPECS = [('get_position', 'position', 'position')]
 
-# FIXME: Load Cell Bricklet not handled yet
+class BrickletLoadCell(DeviceProxy):
+    DEVICE_CLASS = BrickletLoadCell
+    TOPIC_PREFIX = 'bricklet/load_cell'
+    GETTER_SPECS = [('get_weight', 'weight', 'weight'),
+                    ('is_led_on', 'led_on', 'on'),
+                    ('get_moving_average', 'moving_average', 'average'),
+                    ('get_configuration', 'configuration', None)]
+    SETTER_SPECS = [('set_moving_average', 'moving_average/set', ['average']),
+                    ('led_on', 'led_on/set', []),
+                    ('led_off', 'led_off/set', []),
+                    ('tare', 'tare/set', []),
+                    ('set_configuration', 'configuration/set', ['rate', 'gain'])]
 
 class BrickletMoistureProxy(DeviceProxy):
     DEVICE_CLASS = BrickletMoisture
@@ -785,6 +797,15 @@ class BrickletPTCProxy(DeviceProxy):
                     ('get_noise_rejection_filter', 'noise_rejection_filter', 'filter')]
     SETTER_SPECS = [('set_wire_mode', 'wire_mode/set', ['mode']),
                     ('set_noise_rejection_filter', 'noise_rejection_filter/set', ['filter'])]
+
+class BrickletRealTimeClock(DeviceProxy):
+    DEVICE_CLASS = BrickletRealTimeClock
+    TOPIC_PREFIX = 'bricklet/real_time_clock'
+    GETTER_SPECS = [('get_date_time', 'date_time', None),
+                    ('get_timestamp', 'timestamp', 'timestamp'),
+                    ('get_offset', 'offset', 'offset')]
+    SETTER_SPECS = [('set_date_time', 'date_time/set', ['year', 'month', 'day', 'hour', 'minute', 'second', 'centisecond', 'weekday']),
+                    ('set_offset', 'offset/set', ['offset'])]
 
 # FIXME: handle switching_done callback?
 class BrickletRemoteSwitchProxy(DeviceProxy):
