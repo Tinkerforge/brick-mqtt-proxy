@@ -79,6 +79,7 @@ from tinkerforge.bricklet_motion_detector import BrickletMotionDetector
 # FIXME: Piezo Buzzer Bricklet not handled yet
 from tinkerforge.bricklet_piezo_speaker import BrickletPiezoSpeaker
 from tinkerforge.bricklet_ptc import BrickletPTC
+from tinkerforge.bricklet_real_time_clock import BrickletRealTimeClock
 from tinkerforge.bricklet_remote_switch import BrickletRemoteSwitch
 # FIXME: Rotary Encoder Bricklet not handled yet
 from tinkerforge.bricklet_rotary_poti import BrickletRotaryPoti
@@ -796,6 +797,15 @@ class BrickletPTCProxy(DeviceProxy):
                     ('get_noise_rejection_filter', 'noise_rejection_filter', 'filter')]
     SETTER_SPECS = [('set_wire_mode', 'wire_mode/set', ['mode']),
                     ('set_noise_rejection_filter', 'noise_rejection_filter/set', ['filter'])]
+
+class BrickletRealTimeClock(DeviceProxy):
+    DEVICE_CLASS = BrickletRealTimeClock
+    TOPIC_PREFIX = 'bricklet/real_time_clock'
+    GETTER_SPECS = [('get_date_time', 'date_time', None),
+                    ('get_timestamp', 'timestamp', 'timestamp'),
+                    ('get_offset', 'offset', 'offset')]
+    SETTER_SPECS = [('set_date_time', 'date_time/set', ['year', 'month', 'day', 'hour', 'minute', 'second', 'centisecond', 'weekday']),
+                    ('set_offset', 'offset/set', ['offset'])]
 
 # FIXME: handle switching_done callback?
 class BrickletRemoteSwitchProxy(DeviceProxy):
