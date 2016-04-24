@@ -421,7 +421,7 @@ class BrickletBarometerProxy(DeviceProxy):
     SETTER_SPECS = [('set_reference_air_pressure', 'reference_air_pressure/set', ['air_pressure']),
                     ('set_averaging', 'averaging/set', ['moving_average_pressure', 'average_pressure', 'average_temperature'])]
 
-class BrickletCO2(DeviceProxy):
+class BrickletCO2Proxy(DeviceProxy):
     DEVICE_CLASS = BrickletCO2
     TOPIC_PREFIX = 'bricklet/co2'
     GETTER_SPECS = [('get_co2_concentration', 'co2_concentration', 'co2_concentration')]
@@ -756,7 +756,7 @@ class BrickletLinearPotiProxy(DeviceProxy):
     TOPIC_PREFIX = 'bricklet/linear_poti'
     GETTER_SPECS = [('get_position', 'position', 'position')]
 
-class BrickletLoadCell(DeviceProxy):
+class BrickletLoadCellProxy(DeviceProxy):
     DEVICE_CLASS = BrickletLoadCell
     TOPIC_PREFIX = 'bricklet/load_cell'
     GETTER_SPECS = [('get_weight', 'weight', 'weight'),
@@ -807,7 +807,7 @@ class BrickletPTCProxy(DeviceProxy):
     SETTER_SPECS = [('set_wire_mode', 'wire_mode/set', ['mode']),
                     ('set_noise_rejection_filter', 'noise_rejection_filter/set', ['filter'])]
 
-class BrickletRealTimeClock(DeviceProxy):
+class BrickletRealTimeClockProxy(DeviceProxy):
     DEVICE_CLASS = BrickletRealTimeClock
     TOPIC_PREFIX = 'bricklet/real_time_clock'
     GETTER_SPECS = [('get_date_time', 'date_time', None),
