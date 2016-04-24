@@ -45,6 +45,7 @@ from tinkerforge.bricklet_analog_in_v2 import BrickletAnalogInV2
 from tinkerforge.bricklet_analog_out import BrickletAnalogOut
 from tinkerforge.bricklet_analog_out_v2 import BrickletAnalogOutV2
 from tinkerforge.bricklet_barometer import BrickletBarometer
+from tinkerforge.bricklet_co2 import BrickletCO2
 from tinkerforge.bricklet_color import BrickletColor
 from tinkerforge.bricklet_current12 import BrickletCurrent12
 from tinkerforge.bricklet_current25 import BrickletCurrent25
@@ -420,6 +421,11 @@ class BrickletBarometerProxy(DeviceProxy):
     SETTER_SPECS = [('set_reference_air_pressure', 'reference_air_pressure/set', ['air_pressure']),
                     ('set_averaging', 'averaging/set', ['moving_average_pressure', 'average_pressure', 'average_temperature'])]
 
+class BrickletCO2(DeviceProxy):
+    DEVICE_CLASS = BrickletCO2
+    TOPIC_PREFIX = 'bricklet/co2'
+    GETTER_SPECS = [('get_co2_concentration', 'co2_concentration', 'co2_concentration')]
+
 class BrickletColorProxy(DeviceProxy):
     DEVICE_CLASS = BrickletColor
     TOPIC_PREFIX = 'bricklet/color'
@@ -494,7 +500,10 @@ class BrickletDustDetectorProxy(DeviceProxy):
 class BrickletGPSProxy(DeviceProxy):
     DEVICE_CLASS = BrickletGPS
     TOPIC_PREFIX = 'bricklet/gps'
-    GETTER_SPECS = [('get_status', 'status', None),
+    GETTER_SPECS = [('get_coordinates', 'coordinates', None),
+                    ('get_status', 'status', None),
+                    ('get_altitude', 'altitude', None),
+                    ('get_motion', 'motion', None),
                     ('get_date_time', 'date_time', 'date_time')]
     SETTER_SPECS = [('restart', 'restart/set', ['restart_type'])]
 
