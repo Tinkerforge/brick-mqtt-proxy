@@ -864,7 +864,7 @@ class BrickletRotaryEncoderProxy(DeviceProxy):
     def handle_extra_message(self, topic_suffix, payload):
         if topic_suffix == '_reset_count/set':
             try:
-                self.device.get_count(True)
+                self.publish_values('count', count=self.device.get_count(True))
             except:
                 pass
 
