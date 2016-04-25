@@ -176,8 +176,10 @@ class DeviceProxy(object):
 
         self.subscribe(self.topic_prefix + '_update_interval/set')
 
-        self.setup_extra_getters()
-        self.setup_callbacks()
+        try:
+            self.setup_callbacks()
+        except:
+            logging.exception('Exception during setup_callbacks call')
 
         self.update_getters()
         self.set_update_interval(update_interval)
@@ -191,7 +193,10 @@ class DeviceProxy(object):
         elif topic_suffix in self.setters:
             self.setters[topic_suffix].handle_message(payload)
         else:
-            self.handle_extra_message(topic_suffix, payload)
+            try:
+                self.handle_extra_message(topic_suffix, payload)
+            except:
+                logging.exception('Exception during handle_extra_message call')
 
         self.update_getters()
 
@@ -230,10 +235,10 @@ class DeviceProxy(object):
         for getter in self.getters:
             getter.update()
 
-        self.update_extra_getters()
-
-    def setup_extra_getters(self): # to be implemented by subclasses
-        pass
+        try:
+            self.update_extra_getters()
+        except:
+            logging.exception('Exception during update_extra_getters call')
 
     def update_extra_getters(self): # to be implemented by subclasses
         pass
@@ -321,10 +326,6 @@ class DeviceProxy(object):
 #   the field names of the namedtuple as keys in the JSON payload. In this case
 #   the value name in the getter specification is ignored and should be set to
 #   None.
-#
-# - setup_extra_getters (optional): A bound function taking no arguments. The
-#   DeviceProxy instance will automatically call this function once to prepare
-#   for calling the bound update_extra_getters function.
 #
 # - update_extra_getters (optional): A bound function taking no arguments. This
 #   can be used to implement things that don't fit into a getter specification.
@@ -636,22 +637,16 @@ class BrickletJoystickProxy(DeviceProxy):
     SETTER_SPECS = [('calibrate', 'calibrate/set', [])]
 
     def cb_pressed(self):
-        self.last_pressed['pressed'] = True
-        self.publish_values('pressed', **self.last_pressed)
+        self.publish_values('pressed', pressed=True)
 
     def cb_released(self):
-        self.last_pressed['pressed'] = False
-        self.publish_values('pressed', **self.last_pressed)
+        self.publish_values('pressed', pressed=False)
 
     def setup_callbacks(self):
-        self.last_pressed = {'pressed': False}
-
         try:
-            self.last_pressed['pressed'] = self.device.is_pressed()
+            self.publish_values('pressed', pressed=self.device.is_pressed())
         except:
             pass
-
-        self.publish_values('pressed', **self.last_pressed)
 
         self.device.register_callback(BrickletJoystick.CALLBACK_PRESSED,
                                       self.cb_pressed)
@@ -838,37 +833,23 @@ class BrickletRotaryEncoderProxy(DeviceProxy):
     TOPIC_PREFIX = 'bricklet/rotary_encoder'
     EXTRA_SUBSCRIPTIONS = ['_reset_count/set']
 
-    def setup_extra_getters(self):
-        self.last_count = {'count': None}
-
+    def update_extra_getters(self):
         try:
-            self.last_pressed['count'] = self.device.get_count(False)
+            self.publish_values('count', count=self.device.get_count(False))
         except:
             pass
-
-        self.publish_values('count', **self.last_count)
-
-    def update_extra_getters(self):
-        self.last_count['count'] = self.device.get_count(False)
-        self.publish_values('count', **self.last_count)
 
     def cb_pressed(self):
-        self.last_pressed['pressed'] = True
-        self.publish_values('pressed', **self.last_pressed)
+        self.publish_values('pressed', pressed=True)
 
     def cb_released(self):
-        self.last_pressed['pressed'] = False
-        self.publish_values('pressed', **self.last_pressed)
+        self.publish_values('pressed', pressed=False)
 
     def setup_callbacks(self):
-        self.last_pressed = {'pressed': False}
-
         try:
-            self.last_pressed['pressed'] = self.device.is_pressed()
+            self.publish_values('pressed', pressed=self.device.is_pressed())
         except:
             pass
-
-        self.publish_values('pressed', **self.last_pressed)
 
         self.device.register_callback(BrickletRotaryEncoder.CALLBACK_PRESSED,
                                       self.cb_pressed)
