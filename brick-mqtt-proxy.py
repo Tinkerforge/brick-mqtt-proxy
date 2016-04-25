@@ -217,7 +217,12 @@ class DeviceProxy(object):
 
         self.update_interval = update_interval
 
-        if self.update_interval > 0 and self.update_timer == None:
+        if self.update_timer != None:
+            update_timer = self.update_timer
+            self.update_timer = None
+            update_timer.cancel()
+
+        if self.update_interval > 0:
             self.update_timer = threading.Timer(self.update_interval, self.update)
             self.update_timer.start()
 
@@ -234,6 +239,9 @@ class DeviceProxy(object):
             self.update_extra()
 
     def update(self):
+        if self.update_timer == None:
+            return
+
         self.update_timer = None
 
         if self.update_interval < 0:
