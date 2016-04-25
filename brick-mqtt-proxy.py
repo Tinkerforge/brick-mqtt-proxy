@@ -45,6 +45,7 @@ from tinkerforge.bricklet_analog_in_v2 import BrickletAnalogInV2
 from tinkerforge.bricklet_analog_out import BrickletAnalogOut
 from tinkerforge.bricklet_analog_out_v2 import BrickletAnalogOutV2
 from tinkerforge.bricklet_barometer import BrickletBarometer
+from tinkerforge.bricklet_co2 import BrickletCO2
 from tinkerforge.bricklet_color import BrickletColor
 from tinkerforge.bricklet_current12 import BrickletCurrent12
 from tinkerforge.bricklet_current25 import BrickletCurrent25
@@ -81,10 +82,10 @@ from tinkerforge.bricklet_piezo_speaker import BrickletPiezoSpeaker
 from tinkerforge.bricklet_ptc import BrickletPTC
 from tinkerforge.bricklet_real_time_clock import BrickletRealTimeClock
 from tinkerforge.bricklet_remote_switch import BrickletRemoteSwitch
-# FIXME: Rotary Encoder Bricklet not handled yet
+from tinkerforge.bricklet_rotary_encoder import BrickletRotaryEncoder
 from tinkerforge.bricklet_rotary_poti import BrickletRotaryPoti
 # FIXME: RS232 Bricklet not handled yet
-# FIXME: Segment Display 4x7 Bricklet not handled yet
+from tinkerforge.bricklet_segment_display_4x7 import BrickletSegmentDisplay4x7
 from tinkerforge.bricklet_solid_state_relay import BrickletSolidStateRelay
 from tinkerforge.bricklet_sound_intensity import BrickletSoundIntensity
 from tinkerforge.bricklet_temperature import BrickletTemperature
@@ -420,6 +421,11 @@ class BrickletBarometerProxy(DeviceProxy):
     SETTER_SPECS = [('set_reference_air_pressure', 'reference_air_pressure/set', ['air_pressure']),
                     ('set_averaging', 'averaging/set', ['moving_average_pressure', 'average_pressure', 'average_temperature'])]
 
+class BrickletCO2Proxy(DeviceProxy):
+    DEVICE_CLASS = BrickletCO2
+    TOPIC_PREFIX = 'bricklet/co2'
+    GETTER_SPECS = [('get_co2_concentration', 'co2_concentration', 'co2_concentration')]
+
 class BrickletColorProxy(DeviceProxy):
     DEVICE_CLASS = BrickletColor
     TOPIC_PREFIX = 'bricklet/color'
@@ -494,7 +500,10 @@ class BrickletDustDetectorProxy(DeviceProxy):
 class BrickletGPSProxy(DeviceProxy):
     DEVICE_CLASS = BrickletGPS
     TOPIC_PREFIX = 'bricklet/gps'
-    GETTER_SPECS = [('get_status', 'status', None),
+    GETTER_SPECS = [('get_coordinates', 'coordinates', None),
+                    ('get_status', 'status', None),
+                    ('get_altitude', 'altitude', None),
+                    ('get_motion', 'motion', None),
                     ('get_date_time', 'date_time', 'date_time')]
     SETTER_SPECS = [('restart', 'restart/set', ['restart_type'])]
 
@@ -747,7 +756,7 @@ class BrickletLinearPotiProxy(DeviceProxy):
     TOPIC_PREFIX = 'bricklet/linear_poti'
     GETTER_SPECS = [('get_position', 'position', 'position')]
 
-class BrickletLoadCell(DeviceProxy):
+class BrickletLoadCellProxy(DeviceProxy):
     DEVICE_CLASS = BrickletLoadCell
     TOPIC_PREFIX = 'bricklet/load_cell'
     GETTER_SPECS = [('get_weight', 'weight', 'weight'),
@@ -798,7 +807,7 @@ class BrickletPTCProxy(DeviceProxy):
     SETTER_SPECS = [('set_wire_mode', 'wire_mode/set', ['mode']),
                     ('set_noise_rejection_filter', 'noise_rejection_filter/set', ['filter'])]
 
-class BrickletRealTimeClock(DeviceProxy):
+class BrickletRealTimeClockProxy(DeviceProxy):
     DEVICE_CLASS = BrickletRealTimeClock
     TOPIC_PREFIX = 'bricklet/real_time_clock'
     GETTER_SPECS = [('get_date_time', 'date_time', None),
@@ -819,7 +828,48 @@ class BrickletRemoteSwitchProxy(DeviceProxy):
                     ('switch_socket_c', 'switch_socket_c/set', ['system_code', 'device_code', 'switch_to']),
                     ('set_repeats', 'repeats/set', ['repeats'])]
 
-# FIXME: Rotary Encoder Bricklet not handled yet
+# FIXME get_count needs more special handling (reset, count callback period)
+class BrickletRotaryEncoderProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletRotaryEncoder
+    TOPIC_PREFIX = 'bricklet/rotary_encoder'
+
+    def cb_pressed(self):
+        with self.update_lock:
+            self.last_pressed['pressed'] = True
+            self.publish_values('pressed', **self.last_pressed)
+
+    def cb_released(self):
+        with self.update_lock:
+            self.last_pressed['pressed'] = False
+            self.publish_values('pressed', **self.last_pressed)
+
+    def cb_count(self, reset):
+        with self.update_lock:
+            self.last_count['count'] = self.device.get_count(False)
+            self.publish_values('count', **self.last_count)
+
+    def setup_callbacks(self):
+        self.last_pressed = {'pressed': False}
+        self.last_count = {'count': 0}
+
+        try:
+            self.last_pressed['pressed'] = self.device.is_pressed()
+            self.last_count['count'] = self.device.get_count(False)
+            self.device.set_count_callback_period(10)
+        except:
+            pass
+
+        self.device.register_callback(BrickletRotaryEncoder.CALLBACK_PRESSED,
+                                      self.cb_pressed)
+        self.device.register_callback(BrickletRotaryEncoder.CALLBACK_RELEASED,
+                                      self.cb_released)
+        self.device.register_callback(BrickletRotaryEncoder.CALLBACK_COUNT,
+                                      self.cb_count)
+
+        with self.update_lock:
+            self.publish_values('pressed', **self.last_pressed)
+            self.publish_values('count', **self.last_count)
+
 
 # FIXME: expose analog_value getter?
 class BrickletRotaryPotiProxy(DeviceProxy):
@@ -829,7 +879,13 @@ class BrickletRotaryPotiProxy(DeviceProxy):
 
 # FIXME: RS232 Bricklet not handled yet
 
-# FIXME: Segment Display 4x7 Bricklet not handled yet
+class BrickletSegmentDisplay4x7Proxy(DeviceProxy):
+    DEVICE_CLASS = BrickletSegmentDisplay4x7
+    TOPIC_PREFIX = 'bricklet/segment_display_4x7'
+    GETTER_SPECS = [('get_segments', 'segments', None),
+                    ('get_counter_value', 'counter_value', 'value')]
+    SETTER_SPECS = [('set_segments', 'segments/set', ['segments', 'brightness', 'colon']),
+                    ('start_counter', 'start_counter/set', ['value_from', 'value_to', 'increment', 'length'])]
 
 # FIXME: handle monoflop_done callback?
 class BrickletSolidStateRelayProxy(DeviceProxy):
