@@ -508,8 +508,8 @@ class BrickletDustDetectorProxy(DeviceProxy):
 class BrickletGPSProxy(DeviceProxy):
     DEVICE_CLASS = BrickletGPS
     TOPIC_PREFIX = 'bricklet/gps'
-    GETTER_SPECS = [('get_coordinates', 'coordinates', None),
-                    ('get_status', 'status', None),
+    GETTER_SPECS = [('get_status', 'status', None),
+                    ('get_coordinates', 'coordinates', None),
                     ('get_altitude', 'altitude', None),
                     ('get_motion', 'motion', None),
                     ('get_date_time', 'date_time', 'date_time')]
@@ -771,11 +771,11 @@ class BrickletLoadCellProxy(DeviceProxy):
                     ('is_led_on', 'led_on', 'on'),
                     ('get_moving_average', 'moving_average', 'average'),
                     ('get_configuration', 'configuration', None)]
-    SETTER_SPECS = [('set_moving_average', 'moving_average/set', ['average']),
-                    ('led_on', 'led_on/set', []),
+    SETTER_SPECS = [('led_on', 'led_on/set', []),
                     ('led_off', 'led_off/set', []),
-                    ('tare', 'tare/set', []),
-                    ('set_configuration', 'configuration/set', ['rate', 'gain'])]
+                    ('set_moving_average', 'moving_average/set', ['average']),
+                    ('set_configuration', 'configuration/set', ['rate', 'gain']),
+                    ('tare', 'tare/set', [])]
 
 class BrickletMoistureProxy(DeviceProxy):
     DEVICE_CLASS = BrickletMoisture
