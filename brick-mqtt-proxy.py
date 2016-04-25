@@ -236,7 +236,7 @@ class DeviceProxy(object):
     def update(self):
         self.update_timer = None
 
-        if self.update_interval < 1:
+        if self.update_interval < 0:
             return
 
         self.update_locked()
