@@ -82,10 +82,10 @@ from tinkerforge.bricklet_piezo_speaker import BrickletPiezoSpeaker
 from tinkerforge.bricklet_ptc import BrickletPTC
 from tinkerforge.bricklet_real_time_clock import BrickletRealTimeClock
 from tinkerforge.bricklet_remote_switch import BrickletRemoteSwitch
-# FIXME: Rotary Encoder Bricklet not handled yet
+from tinkerforge.bricklet_rotary_encoder import BrickletRotaryEncoder
 from tinkerforge.bricklet_rotary_poti import BrickletRotaryPoti
 # FIXME: RS232 Bricklet not handled yet
-# FIXME: Segment Display 4x7 Bricklet not handled yet
+from tinkerforge.bricklet_segment_display_4x7 import BrickletSegmentDisplay4x7
 from tinkerforge.bricklet_solid_state_relay import BrickletSolidStateRelay
 from tinkerforge.bricklet_sound_intensity import BrickletSoundIntensity
 from tinkerforge.bricklet_temperature import BrickletTemperature
@@ -828,7 +828,49 @@ class BrickletRemoteSwitchProxy(DeviceProxy):
                     ('switch_socket_c', 'switch_socket_c/set', ['system_code', 'device_code', 'switch_to']),
                     ('set_repeats', 'repeats/set', ['repeats'])]
 
-# FIXME: Rotary Encoder Bricklet not handled yet
+# FIXME get_count needs more special handling (reset, count callback period)
+class BrickletRotaryEncoderProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletRotaryEncoder
+    TOPIC_PREFIX = 'bricklet/rotary_encoder'
+    SETTER_SPECS = [('set_count_callback_period', 'count_callback_period/set', ['count_callback_period'])]
+
+    def cb_pressed(self):
+        with self.update_lock:
+            self.last_pressed['pressed'] = True
+            self.publish_values('pressed', **self.last_pressed)
+
+    def cb_released(self):
+        with self.update_lock:
+            self.last_pressed['pressed'] = False
+            self.publish_values('pressed', **self.last_pressed)
+
+    def cb_count(self, reset):
+        with self.update_lock:
+            self.last_count['count'] = self.device.get_count(False)
+            self.publish_values('count', **self.last_count)
+
+    def setup_callbacks(self):
+        self.last_pressed = {'pressed': False}
+        self.last_count = {'count': 0}
+
+        try:
+            self.last_pressed['pressed'] = self.device.is_pressed()
+            self.last_count['count'] = self.device.get_count(False)
+            self.device.set_count_callback_period(10)
+        except:
+            pass
+
+        self.device.register_callback(BrickletRotaryEncoder.CALLBACK_PRESSED,
+                                      self.cb_pressed)
+        self.device.register_callback(BrickletRotaryEncoder.CALLBACK_RELEASED,
+                                      self.cb_released)
+        self.device.register_callback(BrickletRotaryEncoder.CALLBACK_COUNT,
+                                      self.cb_count)
+
+        with self.update_lock:
+            self.publish_values('pressed', **self.last_pressed)
+            self.publish_values('count', **self.last_count)
+
 
 # FIXME: expose analog_value getter?
 class BrickletRotaryPotiProxy(DeviceProxy):
@@ -838,7 +880,13 @@ class BrickletRotaryPotiProxy(DeviceProxy):
 
 # FIXME: RS232 Bricklet not handled yet
 
-# FIXME: Segment Display 4x7 Bricklet not handled yet
+class BrickletSegmentDisplay4x7Proxy(DeviceProxy):
+    DEVICE_CLASS = BrickletSegmentDisplay4x7
+    TOPIC_PREFIX = 'bricklet/segment_display_4x7'
+    GETTER_SPECS = [('get_segments', 'segments', None),
+                    ('get_counter_value', 'counter_value', 'value')]
+    SETTER_SPECS = [('set_segments', 'segments/set', ['segments', 'brightness', 'colon']),
+                    ('start_counter', 'start_counter/set', ['value_from', 'value_to', 'increment', 'length'])]
 
 # FIXME: handle monoflop_done callback?
 class BrickletSolidStateRelayProxy(DeviceProxy):
