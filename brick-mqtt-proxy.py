@@ -848,10 +848,27 @@ class BrickletRemoteSwitchProxy(DeviceProxy):
                     ('switch_socket_c', 'switch_socket_c/set', ['system_code', 'device_code', 'switch_to']),
                     ('set_repeats', 'repeats/set', ['repeats'])]
 
-# FIXME get_count needs more special handling (reset, count callback period)
 class BrickletRotaryEncoderProxy(DeviceProxy):
     DEVICE_CLASS = BrickletRotaryEncoder
     TOPIC_PREFIX = 'bricklet/rotary_encoder'
+    EXTRA_SUBSCRIPTIONS = ['_reset_count/set']
+
+    def setup_extra_getters(self):
+        self.last_count = {'count': None}
+
+        try:
+            self.last_pressed['count'] = self.device.get_count(False)
+        except:
+            pass
+
+        with self.update_lock:
+            self.publish_values('count', **self.last_count)
+
+    def update_extra_getters(self):
+        self.last_count['count'] = self.device.get_count(False)
+
+        with self.update_lock:
+            self.publish_values('count', **self.last_count)
 
     def cb_pressed(self):
         with self.update_lock:
@@ -863,19 +880,11 @@ class BrickletRotaryEncoderProxy(DeviceProxy):
             self.last_pressed['pressed'] = False
             self.publish_values('pressed', **self.last_pressed)
 
-    def cb_count(self, reset):
-        with self.update_lock:
-            self.last_count['count'] = self.device.get_count(False)
-            self.publish_values('count', **self.last_count)
-
     def setup_callbacks(self):
         self.last_pressed = {'pressed': False}
-        self.last_count = {'count': 0}
 
         try:
             self.last_pressed['pressed'] = self.device.is_pressed()
-            self.last_count['count'] = self.device.get_count(False)
-            self.device.set_count_callback_period(10)
         except:
             pass
 
@@ -883,13 +892,16 @@ class BrickletRotaryEncoderProxy(DeviceProxy):
                                       self.cb_pressed)
         self.device.register_callback(BrickletRotaryEncoder.CALLBACK_RELEASED,
                                       self.cb_released)
-        self.device.register_callback(BrickletRotaryEncoder.CALLBACK_COUNT,
-                                      self.cb_count)
 
         with self.update_lock:
             self.publish_values('pressed', **self.last_pressed)
-            self.publish_values('count', **self.last_count)
 
+    def handle_extra_message(self, topic_suffix, payload):
+        if topic_suffix == '_reset_count/set':
+            try:
+                self.device.get_count(True)
+            except:
+                pass
 
 # FIXME: expose analog_value getter?
 class BrickletRotaryPotiProxy(DeviceProxy):
