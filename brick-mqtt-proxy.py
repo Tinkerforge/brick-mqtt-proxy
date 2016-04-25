@@ -163,6 +163,7 @@ class DeviceProxy(object):
         self.setters = {}
         self.update_interval = 0 # seconds
         self.update_timer = None
+        self.update_timer_lock = threading.Lock()
 
         for getter_spec in self.GETTER_SPECS:
             self.getters.append(Getter(self, *getter_spec))
@@ -217,19 +218,24 @@ class DeviceProxy(object):
         self.publish_as_json(self.topic_prefix + topic_suffix, payload, retain=True)
 
     def set_update_interval(self, update_interval): # in seconds
+        update_timer = None
+
+        with self.update_timer_lock:
+            update_timer = self.update_timer
+            self.update_timer = None
+
+        if update_timer != None:
+            update_timer.cancel()
+
         if self.update_interval != update_interval:
             self.publish_values('_update_interval', _update_interval=float(update_interval))
 
-        self.update_interval = update_interval
+        with self.update_timer_lock:
+            self.update_interval = update_interval
 
-        if self.update_timer != None:
-            update_timer = self.update_timer
-            self.update_timer = None
-            update_timer.cancel()
-
-        if self.update_interval > 0:
-            self.update_timer = threading.Timer(self.update_interval, self.update)
-            self.update_timer.start()
+            if self.update_timer == None and self.update_interval > 0:
+                self.update_timer = threading.Timer(self.update_interval, self.update)
+                self.update_timer.start()
 
     def update_getters(self):
         for getter in self.getters:
@@ -244,19 +250,18 @@ class DeviceProxy(object):
         pass
 
     def update(self):
-        if self.update_timer == None:
-            return
+        with self.update_timer_lock:
+            if self.update_timer == None:
+                return
 
-        self.update_timer = None
-
-        if self.update_interval < 0:
-            return
+            self.update_timer = None
 
         self.update_getters()
 
-        if self.update_interval > 0:
-            self.update_timer = threading.Timer(self.update_interval, self.update)
-            self.update_timer.start()
+        with self.update_timer_lock:
+            if self.update_timer == None and self.update_interval > 0:
+                self.update_timer = threading.Timer(self.update_interval, self.update)
+                self.update_timer.start()
 
     def setup_callbacks(self): # to be implemented by subclasses
         pass
