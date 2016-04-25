@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Brick MQTT Proxy
-Copyright (C) 2015 Matthias Bolte <matthias@tinkerforge.com>
+Copyright (C) 2015-2016 Matthias Bolte <matthias@tinkerforge.com>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -163,7 +163,6 @@ class DeviceProxy(object):
         self.setters = {}
         self.update_interval = 0 # seconds
         self.update_timer = None
-        self.update_lock = threading.Lock()
 
         for getter_spec in self.GETTER_SPECS:
             self.getters.append(Getter(self, *getter_spec))
@@ -178,14 +177,10 @@ class DeviceProxy(object):
         self.subscribe(self.topic_prefix + '_update_interval/set')
 
         self.setup_extra_getters()
-
-        self.set_update_interval(update_interval)
-        self.update_locked()
-
         self.setup_callbacks()
 
-    def handle_extra_message(self, topic_suffix, payload): # to be implemented by subclasses
-        pass
+        self.update_getters()
+        self.set_update_interval(update_interval)
 
     def handle_message(self, topic_suffix, payload):
         if topic_suffix == '_update_interval/set':
@@ -198,7 +193,10 @@ class DeviceProxy(object):
         else:
             self.handle_extra_message(topic_suffix, payload)
 
-        self.update_locked()
+        self.update_getters()
+
+    def handle_extra_message(self, topic_suffix, payload): # to be implemented by subclasses
+        pass
 
     def publish_as_json(self, topic, payload, *args, **kwargs):
         self.client.publish(GLOBAL_TOPIC_PREFIX + topic,
@@ -228,18 +226,17 @@ class DeviceProxy(object):
             self.update_timer = threading.Timer(self.update_interval, self.update)
             self.update_timer.start()
 
-    def update_extra_getters(self): # to be implemented by subclasses
-        pass
-
     def update_getters(self):
         for getter in self.getters:
             getter.update()
 
-    def update_locked(self):
-        with self.update_lock:
-            self.update_getters()
-
         self.update_extra_getters()
+
+    def setup_extra_getters(self): # to be implemented by subclasses
+        pass
+
+    def update_extra_getters(self): # to be implemented by subclasses
+        pass
 
     def update(self):
         if self.update_timer == None:
@@ -250,14 +247,11 @@ class DeviceProxy(object):
         if self.update_interval < 0:
             return
 
-        self.update_locked()
+        self.update_getters()
 
         if self.update_interval > 0:
             self.update_timer = threading.Timer(self.update_interval, self.update)
             self.update_timer.start()
-
-    def setup_extra_getters(self): # to be implemented by subclasses
-        pass
 
     def setup_callbacks(self): # to be implemented by subclasses
         pass
@@ -329,8 +323,8 @@ class DeviceProxy(object):
 #   None.
 #
 # - setup_extra_getters (optional): A bound function taking no arguments. The
-#   DeviceProxy instance will automatically call once to prepare for calling the
-#   bound update_extra_getters function.
+#   DeviceProxy instance will automatically call this function once to prepare
+#   for calling the bound update_extra_getters function.
 #
 # - update_extra_getters (optional): A bound function taking no arguments. This
 #   can be used to implement things that don't fit into a getter specification.
@@ -642,14 +636,12 @@ class BrickletJoystickProxy(DeviceProxy):
     SETTER_SPECS = [('calibrate', 'calibrate/set', [])]
 
     def cb_pressed(self):
-        with self.update_lock:
-            self.last_pressed['pressed'] = True
-            self.publish_values('pressed', **self.last_pressed)
+        self.last_pressed['pressed'] = True
+        self.publish_values('pressed', **self.last_pressed)
 
     def cb_released(self):
-        with self.update_lock:
-            self.last_pressed['pressed'] = False
-            self.publish_values('pressed', **self.last_pressed)
+        self.last_pressed['pressed'] = False
+        self.publish_values('pressed', **self.last_pressed)
 
     def setup_callbacks(self):
         self.last_pressed = {'pressed': False}
@@ -659,13 +651,12 @@ class BrickletJoystickProxy(DeviceProxy):
         except:
             pass
 
+        self.publish_values('pressed', **self.last_pressed)
+
         self.device.register_callback(BrickletJoystick.CALLBACK_PRESSED,
                                       self.cb_pressed)
         self.device.register_callback(BrickletJoystick.CALLBACK_RELEASED,
                                       self.cb_released)
-
-        with self.update_lock:
-            self.publish_values('pressed', **self.last_pressed)
 
 class BrickletLaserRangeFinderProxy(DeviceProxy):
     DEVICE_CLASS = BrickletLaserRangeFinder
@@ -694,14 +685,12 @@ class BrickletLCD16x2Proxy(DeviceProxy):
                     ('set_custom_character', 'custom_character/set', ['index', 'character'])]
 
     def cb_button_pressed(self, button):
-        with self.update_lock:
-            self.last_button_pressed[str(button)] = True
-            self.publish_values('button_pressed', **self.last_button_pressed)
+        self.last_button_pressed[str(button)] = True
+        self.publish_values('button_pressed', **self.last_button_pressed)
 
     def cb_button_released(self, button):
-        with self.update_lock:
-            self.last_button_pressed[str(button)] = False
-            self.publish_values('button_pressed', **self.last_button_pressed)
+        self.last_button_pressed[str(button)] = False
+        self.publish_values('button_pressed', **self.last_button_pressed)
 
     def setup_callbacks(self):
         self.last_button_pressed = {'0': False, '1': False, '2': False}
@@ -712,13 +701,12 @@ class BrickletLCD16x2Proxy(DeviceProxy):
             except:
                 pass
 
+        self.publish_values('button_pressed', **self.last_button_pressed)
+
         self.device.register_callback(BrickletLCD16x2.CALLBACK_BUTTON_PRESSED,
                                       self.cb_button_pressed)
         self.device.register_callback(BrickletLCD16x2.CALLBACK_BUTTON_RELEASED,
                                       self.cb_button_released)
-
-        with self.update_lock:
-            self.publish_values('button_pressed', **self.last_button_pressed)
 
 # FIXME: get_custom_character and get_default_text need special handling
 class BrickletLCD20x4Proxy(DeviceProxy):
@@ -737,14 +725,12 @@ class BrickletLCD20x4Proxy(DeviceProxy):
                     ('set_default_text_counter', 'default_text_counter/set', ['counter'])]
 
     def cb_button_pressed(self, button):
-        with self.update_lock:
-            self.last_button_pressed[str(button)] = True
-            self.publish_values('button_pressed', **self.last_button_pressed)
+        self.last_button_pressed[str(button)] = True
+        self.publish_values('button_pressed', **self.last_button_pressed)
 
     def cb_button_released(self, button):
-        with self.update_lock:
-            self.last_button_pressed[str(button)] = False
-            self.publish_values('button_pressed', **self.last_button_pressed)
+        self.last_button_pressed[str(button)] = False
+        self.publish_values('button_pressed', **self.last_button_pressed)
 
     def setup_callbacks(self):
         self.last_button_pressed = {'0': False, '1': False, '2': False, '3': False}
@@ -755,13 +741,12 @@ class BrickletLCD20x4Proxy(DeviceProxy):
             except:
                 pass
 
+        self.publish_values('button_pressed', **self.last_button_pressed)
+
         self.device.register_callback(BrickletLCD20x4.CALLBACK_BUTTON_PRESSED,
                                       self.cb_button_pressed)
         self.device.register_callback(BrickletLCD20x4.CALLBACK_BUTTON_RELEASED,
                                       self.cb_button_released)
-
-        with self.update_lock:
-            self.publish_values('button_pressed', **self.last_button_pressed)
 
 # FIXME: LED Strip Bricklet not handled yet
 
@@ -861,24 +846,19 @@ class BrickletRotaryEncoderProxy(DeviceProxy):
         except:
             pass
 
-        with self.update_lock:
-            self.publish_values('count', **self.last_count)
+        self.publish_values('count', **self.last_count)
 
     def update_extra_getters(self):
         self.last_count['count'] = self.device.get_count(False)
-
-        with self.update_lock:
-            self.publish_values('count', **self.last_count)
+        self.publish_values('count', **self.last_count)
 
     def cb_pressed(self):
-        with self.update_lock:
-            self.last_pressed['pressed'] = True
-            self.publish_values('pressed', **self.last_pressed)
+        self.last_pressed['pressed'] = True
+        self.publish_values('pressed', **self.last_pressed)
 
     def cb_released(self):
-        with self.update_lock:
-            self.last_pressed['pressed'] = False
-            self.publish_values('pressed', **self.last_pressed)
+        self.last_pressed['pressed'] = False
+        self.publish_values('pressed', **self.last_pressed)
 
     def setup_callbacks(self):
         self.last_pressed = {'pressed': False}
@@ -888,13 +868,12 @@ class BrickletRotaryEncoderProxy(DeviceProxy):
         except:
             pass
 
+        self.publish_values('pressed', **self.last_pressed)
+
         self.device.register_callback(BrickletRotaryEncoder.CALLBACK_PRESSED,
                                       self.cb_pressed)
         self.device.register_callback(BrickletRotaryEncoder.CALLBACK_RELEASED,
                                       self.cb_released)
-
-        with self.update_lock:
-            self.publish_values('pressed', **self.last_pressed)
 
     def handle_extra_message(self, topic_suffix, payload):
         if topic_suffix == '_reset_count/set':
