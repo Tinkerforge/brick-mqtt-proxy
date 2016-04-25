@@ -832,7 +832,6 @@ class BrickletRemoteSwitchProxy(DeviceProxy):
 class BrickletRotaryEncoderProxy(DeviceProxy):
     DEVICE_CLASS = BrickletRotaryEncoder
     TOPIC_PREFIX = 'bricklet/rotary_encoder'
-    SETTER_SPECS = [('set_count_callback_period', 'count_callback_period/set', ['count_callback_period'])]
 
     def cb_pressed(self):
         with self.update_lock:
