@@ -177,6 +177,8 @@ class DeviceProxy(object):
 
         self.subscribe(self.topic_prefix + '_update_interval/set')
 
+        self.setup_extra_getters()
+
         self.set_update_interval(update_interval)
         self.update_locked()
 
@@ -226,7 +228,7 @@ class DeviceProxy(object):
             self.update_timer = threading.Timer(self.update_interval, self.update)
             self.update_timer.start()
 
-    def update_extra(self): # to be implemented by subclasses
+    def update_extra_getters(self): # to be implemented by subclasses
         pass
 
     def update_getters(self):
@@ -236,7 +238,8 @@ class DeviceProxy(object):
     def update_locked(self):
         with self.update_lock:
             self.update_getters()
-            self.update_extra()
+
+        self.update_extra_getters()
 
     def update(self):
         if self.update_timer == None:
@@ -252,6 +255,9 @@ class DeviceProxy(object):
         if self.update_interval > 0:
             self.update_timer = threading.Timer(self.update_interval, self.update)
             self.update_timer.start()
+
+    def setup_extra_getters(self): # to be implemented by subclasses
+        pass
 
     def setup_callbacks(self): # to be implemented by subclasses
         pass
@@ -322,12 +328,16 @@ class DeviceProxy(object):
 #   the value name in the getter specification is ignored and should be set to
 #   None.
 #
-# - update_extra (optional): A bound function taking no arguments. This can be
-#   used to implement things that don't fit into a getter specification. The
-#   DeviceProxy instance automatically calls this function with the configured
-#   update interval. Inside this function the publish_values function of the
-#   DeviceProxy class can be used to publish a dict formatted as JSON to a
-#   specified topic suffix.
+# - setup_extra_getters (optional): A bound function taking no arguments. The
+#   DeviceProxy instance will automatically call once to prepare for calling the
+#   bound update_extra_getters function.
+#
+# - update_extra_getters (optional): A bound function taking no arguments. This
+#   can be used to implement things that don't fit into a getter specification.
+#   The DeviceProxy instance will automatically call this function with the
+#   configured update interval. Inside this function the publish_values function
+#   of the DeviceProxy class can be used to publish a dict formatted as JSON to
+#   a specified topic suffix.
 #
 # - SETTER_SPECS (optional): A list of Brick or Bricklet setter specifications.
 #   The DeviceProxy instance automatically subscribes to the specified topics
@@ -354,7 +364,9 @@ class DeviceProxy(object):
 #
 # - setup_callbacks (optional): A bound function taking no arguments. This can
 #   be used to deal with callbacks such as the button pressed/released callbacks
-#   of the LCD 20x4 Bricklet.
+#   of the LCD 20x4 Bricklet. Only callbacks without configuration should be
+#   used, because the configuration in global and could interfere with other
+#   user programs.
 #
 # To add a new DeviceProxy subclass implement it according to the description
 # above. The Proxy class will automatically pick up all DeviceProxy subclasses
