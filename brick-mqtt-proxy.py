@@ -69,7 +69,7 @@ from tinkerforge.bricklet_joystick import BrickletJoystick
 from tinkerforge.bricklet_laser_range_finder import BrickletLaserRangeFinder
 from tinkerforge.bricklet_lcd_16x2 import BrickletLCD16x2
 from tinkerforge.bricklet_lcd_20x4 import BrickletLCD20x4
-# FIXME: LED Strip Bricklet not handled yet
+from tinkerforge.bricklet_led_strip import BrickletLEDStrip
 from tinkerforge.bricklet_line import BrickletLine
 from tinkerforge.bricklet_linear_poti import BrickletLinearPoti
 from tinkerforge.bricklet_load_cell import BrickletLoadCell
@@ -748,7 +748,18 @@ class BrickletLCD20x4Proxy(DeviceProxy):
         self.device.register_callback(BrickletLCD20x4.CALLBACK_BUTTON_RELEASED,
                                       self.cb_button_released)
 
-# FIXME: LED Strip Bricklet not handled yet
+class BrickletLEDStripProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletLEDStrip
+    TOPIC_PREFIX = 'bricklet/led_strip'
+    GETTER_SPECS = [('get_rgb_values', 'rgb_values', None),
+                    ('get_frame_duration', 'frame_duration', 'duration'),
+                    ('get_supply_voltage', 'supply_voltage', 'voltage'),
+                    ('get_clock_frequency', 'clock_frequency', 'frequency'),
+                    ('get_chip_type', 'chip_type', 'chip')]
+    SETTER_SPECS = [('set_rgb_values', 'rgb_values/set', ['index', 'length', 'r', 'g', 'b']),
+                    ('set_frame_duration', 'frame_duration/set', ['duration']),
+                    ('set_clock_frequency', 'clock_frequency/set', ['frequency']),
+                    ('set_chip_type', 'chip_type/set', ['chip'])]
 
 class BrickletLineProxy(DeviceProxy):
     DEVICE_CLASS = BrickletLine
