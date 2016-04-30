@@ -75,7 +75,7 @@ from tinkerforge.bricklet_linear_poti import BrickletLinearPoti
 from tinkerforge.bricklet_load_cell import BrickletLoadCell
 from tinkerforge.bricklet_moisture import BrickletMoisture
 from tinkerforge.bricklet_motion_detector import BrickletMotionDetector
-# FIXME: Multi Touch Bricklet not handled yet
+from tinkerforge.bricklet_multi_touch import BrickletMultiTouch
 # FIXME: NFC/RFID Bricklet not handled yet
 # FIXME: Piezo Buzzer Bricklet not handled yet
 from tinkerforge.bricklet_piezo_speaker import BrickletPiezoSpeaker
@@ -787,7 +787,16 @@ class BrickletMotionDetectorProxy(DeviceProxy):
     TOPIC_PREFIX = 'bricklet/motion_detector'
     GETTER_SPECS = [('get_motion_detected', 'motion_detected', 'motion')]
 
-# FIXME: Multi Touch Bricklet not handled yet
+# FIXME: immediate touch feedback with callback?
+class BrickletMultiTouchProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletMultiTouch
+    TOPIC_PREFIX = 'bricklet/multi_touch'
+    GETTER_SPECS = [('get_touch_state', 'touch_state', 'state'),
+                    ('get_electrode_config', 'electrode_config', 'enabled_electrodes'),
+                    ('get_electrode_sensitivity', 'electrode_sensitivity', 'sensitivity')]
+    SETTER_SPECS = [('recalibrate', 'recalibrate/set', []),
+                    ('set_electrode_config', 'electrode_config/set', ['enabled_electrodes']),
+                    ('set_electrode_sensitivity', 'electrode_sensitivity/set', ['sensitivity'])]
 
 # FIXME: NFC/RFID Bricklet not handled yet
 
