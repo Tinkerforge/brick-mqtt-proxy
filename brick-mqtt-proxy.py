@@ -1109,6 +1109,16 @@ class Proxy(object):
 
         logging.debug('Unknown topic ' + message.topic)
 
+def parse_positive_int(value):
+    value = int(value)
+
+    if value < 0:
+        raise ValueError()
+
+    return value
+
+parse_positive_int.__name__ = 'positive-int'
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Brick MQTT Proxy')
     parser.add_argument('--brickd-host', dest='brickd_host', type=str, default=BRICKD_HOST,
@@ -1119,7 +1129,7 @@ if __name__ == '__main__':
                         help='hostname or IP address of MQTT broker (default: {0})'.format(BROKER_HOST))
     parser.add_argument('--broker-port', dest='broker_port', type=int, default=BROKER_PORT,
                         help='port number of MQTT broker (default: {0})'.format(BROKER_PORT))
-    parser.add_argument('--update-interval', dest='update_interval', type=int, default=UPDATE_INTERVAL,
+    parser.add_argument('--update-interval', dest='update_interval', type=parse_positive_int, default=UPDATE_INTERVAL,
                         help='update interval in seconds (default: {0})'.format(UPDATE_INTERVAL))
     parser.add_argument('--global-topic-prefix', dest='global_topic_prefix', type=str, default=GLOBAL_TOPIC_PREFIX,
                         help='mqtt topic prefix for this proxy instance (default: {0})'.format(GLOBAL_TOPIC_PREFIX))
