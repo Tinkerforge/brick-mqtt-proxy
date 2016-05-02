@@ -491,14 +491,31 @@ class BrickletDistanceUSProxy(DeviceProxy):
                     ('get_moving_average', 'moving_average', 'average')]
     SETTER_SPECS = [('set_moving_average', 'moving_average/set', ['average'])]
 
-# FIXME: handle state_changed callback?
 class BrickletDualButtonProxy(DeviceProxy):
     DEVICE_CLASS = BrickletDualButton
     TOPIC_PREFIX = 'bricklet/dual_button'
-    GETTER_SPECS = [('get_button_state', 'button_state', None),
-                    ('get_led_state', 'led_state', None)]
     SETTER_SPECS = [('set_led_state', 'led_state/set', ['led_l', 'led_r']),
                     ('set_selected_led_state', 'selected_led_state/set', ['led', 'state'])]
+
+    def cb_state_changed(self, button_l, button_r, led_l, led_r):
+        self.publish_values('button_state', button_l=button_l, button_r=button_r)
+        self.publish_values('led_state', led_l=led_l, led_r=led_r)
+
+    def setup_callbacks(self):
+        try:
+            button_l, button_r = self.device.get_button_state()
+            self.publish_values('button_state', button_l=button_l, button_r=button_r)
+        except:
+            pass
+
+        try:
+            led_l, led_r = self.device.get_led_state()
+            self.publish_values('led_state', led_l=led_l, led_r=led_r)
+        except:
+            pass
+
+        self.device.register_callback(BrickletDualButton.CALLBACK_STATE_CHANGED,
+                                      self.cb_state_changed)
 
 # FIXME: get_monoflop needs special handling
 # FIXME: handle monoflop_done callback?
