@@ -69,13 +69,13 @@ from tinkerforge.bricklet_joystick import BrickletJoystick
 from tinkerforge.bricklet_laser_range_finder import BrickletLaserRangeFinder
 from tinkerforge.bricklet_lcd_16x2 import BrickletLCD16x2
 from tinkerforge.bricklet_lcd_20x4 import BrickletLCD20x4
-# FIXME: LED Strip Bricklet not handled yet
+from tinkerforge.bricklet_led_strip import BrickletLEDStrip
 from tinkerforge.bricklet_line import BrickletLine
 from tinkerforge.bricklet_linear_poti import BrickletLinearPoti
 from tinkerforge.bricklet_load_cell import BrickletLoadCell
 from tinkerforge.bricklet_moisture import BrickletMoisture
 from tinkerforge.bricklet_motion_detector import BrickletMotionDetector
-# FIXME: Multi Touch Bricklet not handled yet
+from tinkerforge.bricklet_multi_touch import BrickletMultiTouch
 # FIXME: NFC/RFID Bricklet not handled yet
 # FIXME: Piezo Buzzer Bricklet not handled yet
 from tinkerforge.bricklet_piezo_speaker import BrickletPiezoSpeaker
@@ -148,7 +148,7 @@ class DeviceProxy(object):
     EXTRA_SUBSCRIPTIONS = []
 
     def __init__(self, uid, connected_uid, position, hardware_version, firmware_version,
-                 ipcon, client, update_interval):
+                 ipcon, client, update_interval, global_topic_prefix):
         self.timestamp = time.time()
         self.uid = uid
         self.connected_uid = connected_uid
@@ -161,6 +161,7 @@ class DeviceProxy(object):
         self.topic_prefix = '{0}/{1}/'.format(self.TOPIC_PREFIX, uid)
         self.getters = []
         self.setters = {}
+        self.global_topic_prefix = global_topic_prefix
         self.update_interval = 0 # seconds
         self.update_timer = None
         self.update_timer_lock = threading.Lock()
@@ -205,7 +206,7 @@ class DeviceProxy(object):
         pass
 
     def publish_as_json(self, topic, payload, *args, **kwargs):
-        self.client.publish(GLOBAL_TOPIC_PREFIX + topic,
+        self.client.publish(self.global_topic_prefix + topic,
                             json.dumps(payload, separators=(',', ':')),
                             *args, **kwargs)
 
@@ -276,13 +277,13 @@ class DeviceProxy(object):
                 'device_identifier': self.DEVICE_CLASS.DEVICE_IDENTIFIER}
 
     def subscribe(self, topic_suffix):
-        topic = GLOBAL_TOPIC_PREFIX + topic_suffix
+        topic = self.global_topic_prefix + topic_suffix
 
         logging.debug('Subscribing to ' + topic)
         self.client.subscribe(topic)
 
     def unsubscribe(self, topic_suffix):
-        topic = GLOBAL_TOPIC_PREFIX + topic_suffix
+        topic = self.global_topic_prefix + topic_suffix
 
         logging.debug('Unsubscribing from ' + topic)
         self.client.unsubscribe(topic)
@@ -748,7 +749,18 @@ class BrickletLCD20x4Proxy(DeviceProxy):
         self.device.register_callback(BrickletLCD20x4.CALLBACK_BUTTON_RELEASED,
                                       self.cb_button_released)
 
-# FIXME: LED Strip Bricklet not handled yet
+class BrickletLEDStripProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletLEDStrip
+    TOPIC_PREFIX = 'bricklet/led_strip'
+    GETTER_SPECS = [('get_rgb_values', 'rgb_values', None),
+                    ('get_frame_duration', 'frame_duration', 'duration'),
+                    ('get_supply_voltage', 'supply_voltage', 'voltage'),
+                    ('get_clock_frequency', 'clock_frequency', 'frequency'),
+                    ('get_chip_type', 'chip_type', 'chip')]
+    SETTER_SPECS = [('set_rgb_values', 'rgb_values/set', ['index', 'length', 'r', 'g', 'b']),
+                    ('set_frame_duration', 'frame_duration/set', ['duration']),
+                    ('set_clock_frequency', 'clock_frequency/set', ['frequency']),
+                    ('set_chip_type', 'chip_type/set', ['chip'])]
 
 class BrickletLineProxy(DeviceProxy):
     DEVICE_CLASS = BrickletLine
@@ -787,7 +799,16 @@ class BrickletMotionDetectorProxy(DeviceProxy):
     TOPIC_PREFIX = 'bricklet/motion_detector'
     GETTER_SPECS = [('get_motion_detected', 'motion_detected', 'motion')]
 
-# FIXME: Multi Touch Bricklet not handled yet
+# FIXME: immediate touch feedback with callback?
+class BrickletMultiTouchProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletMultiTouch
+    TOPIC_PREFIX = 'bricklet/multi_touch'
+    GETTER_SPECS = [('get_touch_state', 'touch_state', 'state'),
+                    ('get_electrode_config', 'electrode_config', 'enabled_electrodes'),
+                    ('get_electrode_sensitivity', 'electrode_sensitivity', 'sensitivity')]
+    SETTER_SPECS = [('recalibrate', 'recalibrate/set', []),
+                    ('set_electrode_config', 'electrode_config/set', ['enabled_electrodes']),
+                    ('set_electrode_sensitivity', 'electrode_sensitivity/set', ['sensitivity'])]
 
 # FIXME: NFC/RFID Bricklet not handled yet
 
@@ -942,12 +963,13 @@ class BrickletVoltageCurrentProxy(DeviceProxy):
                     ('set_calibration', 'calibration/set', ['gain_multiplier', 'gain_divisor'])]
 
 class Proxy(object):
-    def __init__(self, brickd_host, brickd_port, broker_host, broker_port, update_interval):
+    def __init__(self, brickd_host, brickd_port, broker_host, broker_port, update_interval, global_topic_prefix):
         self.brickd_host = brickd_host
         self.brickd_port = brickd_port
         self.broker_host = broker_host
         self.broker_port = broker_port
         self.update_interval = update_interval
+        self.global_topic_prefix = global_topic_prefix
 
         self.ipcon = IPConnection()
         self.ipcon.register_callback(IPConnection.CALLBACK_CONNECTED, self.ipcon_cb_connected)
@@ -981,7 +1003,7 @@ class Proxy(object):
         self.client.loop_stop()
 
     def publish_as_json(self, topic, payload, *args, **kwargs):
-        self.client.publish(GLOBAL_TOPIC_PREFIX + topic,
+        self.client.publish(self.global_topic_prefix + topic,
                             json.dumps(payload, separators=(',',':')),
                             *args, **kwargs)
 
@@ -1019,7 +1041,7 @@ class Proxy(object):
         elif device_identifier in self.device_proxy_classes and uid not in self.device_proxies:
             self.device_proxies[uid] = self.device_proxy_classes[device_identifier](uid, connected_uid, position, hardware_version,
                                                                                     firmware_version, self.ipcon, self.client,
-                                                                                    self.update_interval)
+                                                                                    self.update_interval, self.global_topic_prefix)
             self.publish_enumerate(uid, True)
 
     def mqtt_on_connect(self, client, user_data, flags, result_code):
@@ -1037,7 +1059,7 @@ class Proxy(object):
     def mqtt_on_message(self, client, user_data, message):
         logging.debug('Received message for topic ' + message.topic)
 
-        topic = message.topic[len(GLOBAL_TOPIC_PREFIX):]
+        topic = message.topic[len(self.global_topic_prefix):]
 
         if topic.startswith('brick/') or topic.startswith('bricklet/'):
             topic_prefix1, topic_prefix2, uid, topic_suffix = topic.split('/', 3)
@@ -1072,6 +1094,8 @@ if __name__ == '__main__':
                         help='port number of MQTT broker (default: {0})'.format(BROKER_PORT))
     parser.add_argument('--update-interval', dest='update_interval', type=int, default=UPDATE_INTERVAL,
                         help='update interval in seconds (default: {0})'.format(UPDATE_INTERVAL))
+    parser.add_argument('--global-topic-prefix', dest='global_topic_prefix', type=str, default=GLOBAL_TOPIC_PREFIX,
+                        help='mqtt topic prefix for this proxy instance (default: {0})'.format(GLOBAL_TOPIC_PREFIX))
     parser.add_argument('--debug', dest='debug', action='store_true', help='enable debug output')
 
     args = parser.parse_args(sys.argv[1:])
@@ -1079,5 +1103,5 @@ if __name__ == '__main__':
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    proxy = Proxy(args.brickd_host, args.brickd_port, args.broker_host, args.broker_port, args.update_interval)
+    proxy = Proxy(args.brickd_host, args.brickd_port, args.broker_host, args.broker_port, args.update_interval, args.global_topic_prefix)
     proxy.connect()
