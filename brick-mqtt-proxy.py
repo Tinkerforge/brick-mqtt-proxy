@@ -816,16 +816,26 @@ class BrickletMotionDetectorProxy(DeviceProxy):
     TOPIC_PREFIX = 'bricklet/motion_detector'
     GETTER_SPECS = [('get_motion_detected', 'motion_detected', 'motion')]
 
-# FIXME: immediate touch feedback with callback?
 class BrickletMultiTouchProxy(DeviceProxy):
     DEVICE_CLASS = BrickletMultiTouch
     TOPIC_PREFIX = 'bricklet/multi_touch'
-    GETTER_SPECS = [('get_touch_state', 'touch_state', 'state'),
-                    ('get_electrode_config', 'electrode_config', 'enabled_electrodes'),
+    GETTER_SPECS = [('get_electrode_config', 'electrode_config', 'enabled_electrodes'),
                     ('get_electrode_sensitivity', 'electrode_sensitivity', 'sensitivity')]
     SETTER_SPECS = [('recalibrate', 'recalibrate/set', []),
                     ('set_electrode_config', 'electrode_config/set', ['enabled_electrodes']),
                     ('set_electrode_sensitivity', 'electrode_sensitivity/set', ['sensitivity'])]
+
+    def cb_touch_state(self, state):
+        self.publish_values('touch_state', state=state)
+
+    def setup_callbacks(self):
+        try:
+            self.publish_values('touch_state', state=self.device.get_touch_state())
+        except:
+            pass
+
+        self.device.register_callback(BrickletMultiTouch.CALLBACK_TOUCH_STATE,
+                                      self.cb_touch_state)
 
 # FIXME: NFC/RFID Bricklet not handled yet
 
