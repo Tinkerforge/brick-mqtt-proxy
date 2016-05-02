@@ -1132,7 +1132,7 @@ if __name__ == '__main__':
     parser.add_argument('--update-interval', dest='update_interval', type=parse_positive_int, default=UPDATE_INTERVAL,
                         help='update interval in seconds (default: {0})'.format(UPDATE_INTERVAL))
     parser.add_argument('--global-topic-prefix', dest='global_topic_prefix', type=str, default=GLOBAL_TOPIC_PREFIX,
-                        help='mqtt topic prefix for this proxy instance (default: {0})'.format(GLOBAL_TOPIC_PREFIX))
+                        help='global MQTT topic prefix for this proxy instance (default: {0})'.format(GLOBAL_TOPIC_PREFIX))
     parser.add_argument('--debug', dest='debug', action='store_true', help='enable debug output')
 
     args = parser.parse_args(sys.argv[1:])
@@ -1140,5 +1140,11 @@ if __name__ == '__main__':
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    proxy = Proxy(args.brickd_host, args.brickd_port, args.broker_host, args.broker_port, args.update_interval, args.global_topic_prefix)
+    global_topic_prefix = args.global_topic_prefix
+
+    if len(global_topic_prefix) > 0 and not global_topic_prefix.endswith('/'):
+        global_topic_prefix += '/'
+
+    proxy = Proxy(args.brickd_host, args.brickd_port, args.broker_host,
+                  args.broker_port, args.update_interval, global_topic_prefix)
     proxy.connect()
