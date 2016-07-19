@@ -45,6 +45,7 @@ from tinkerforge.bricklet_analog_in_v2 import BrickletAnalogInV2
 from tinkerforge.bricklet_analog_out import BrickletAnalogOut
 from tinkerforge.bricklet_analog_out_v2 import BrickletAnalogOutV2
 from tinkerforge.bricklet_barometer import BrickletBarometer
+# FIXME: CAN Bricklet not handled yet
 from tinkerforge.bricklet_co2 import BrickletCO2
 from tinkerforge.bricklet_color import BrickletColor
 from tinkerforge.bricklet_current12 import BrickletCurrent12
@@ -82,6 +83,7 @@ from tinkerforge.bricklet_piezo_speaker import BrickletPiezoSpeaker
 from tinkerforge.bricklet_ptc import BrickletPTC
 from tinkerforge.bricklet_real_time_clock import BrickletRealTimeClock
 from tinkerforge.bricklet_remote_switch import BrickletRemoteSwitch
+from tinkerforge.bricklet_rgb_led import BrickletRGBLED
 from tinkerforge.bricklet_rotary_encoder import BrickletRotaryEncoder
 from tinkerforge.bricklet_rotary_poti import BrickletRotaryPoti
 # FIXME: RS232 Bricklet not handled yet
@@ -441,6 +443,8 @@ class BrickletBarometerProxy(DeviceProxy):
                     ('get_averaging', 'averaging', None)]
     SETTER_SPECS = [('set_reference_air_pressure', 'reference_air_pressure/set', ['air_pressure']),
                     ('set_averaging', 'averaging/set', ['moving_average_pressure', 'average_pressure', 'average_temperature'])]
+
+# FIXME: CAN Bricklet not handled yet
 
 class BrickletCO2Proxy(DeviceProxy):
     DEVICE_CLASS = BrickletCO2
@@ -880,6 +884,12 @@ class BrickletRemoteSwitchProxy(DeviceProxy):
                     ('dim_socket_b', 'dim_socket_b/set', ['address', 'unit', 'dim_value']),
                     ('switch_socket_c', 'switch_socket_c/set', ['system_code', 'device_code', 'switch_to']),
                     ('set_repeats', 'repeats/set', ['repeats'])]
+
+class BrickletRGBLEDProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletRGBLED
+    TOPIC_PREFIX = 'bricklet/rgb_led'
+    GETTER_SPECS = [('get_rgb_value', 'rgb_value', None)]
+    SETTER_SPECS = [('set_rgb_value', 'rgb_value/set', ['r', 'g', 'b'])]
 
 class BrickletRotaryEncoderProxy(DeviceProxy):
     DEVICE_CLASS = BrickletRotaryEncoder
