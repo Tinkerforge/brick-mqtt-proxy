@@ -693,7 +693,6 @@ class BrickletLaserRangeFinderProxy(DeviceProxy):
                     ('disable_laser', 'disable_laser/set', []),
                     ('set_moving_average', 'moving_average/set', ['distance_average_length', 'velocity_average_length'])]
 
-# FIXME: get_custom_character needs special handling
 class BrickletLCD16x2Proxy(DeviceProxy):
     DEVICE_CLASS = BrickletLCD16x2
     TOPIC_PREFIX = 'bricklet/lcd_16x2'
@@ -705,6 +704,17 @@ class BrickletLCD16x2Proxy(DeviceProxy):
                     ('backlight_off', 'backlight_off/set', []),
                     ('set_config', 'config/set', ['cursor', 'blinking']),
                     ('set_custom_character', 'custom_character/set', ['index', 'character'])]
+
+    def update_extra_getters(self):
+        custom_character = {'0': [0]*8, '1': [0]*8, '2': [0]*8, '3': [0]*8, '4': [0]*8, '5': [0]*8, '6': [0]*8, '7': [0]*8}
+
+        for index in range(8):
+            try:
+                custom_character[str(index)] = self.device.get_custom_character(index)
+            except:
+                pass
+
+        self.publish_values('custom_character', **custom_character)
 
     def cb_button_pressed(self, button):
         self.last_button_pressed[str(button)] = True
@@ -730,7 +740,6 @@ class BrickletLCD16x2Proxy(DeviceProxy):
         self.device.register_callback(BrickletLCD16x2.CALLBACK_BUTTON_RELEASED,
                                       self.cb_button_released)
 
-# FIXME: get_custom_character and get_default_text need special handling
 class BrickletLCD20x4Proxy(DeviceProxy):
     DEVICE_CLASS = BrickletLCD20x4
     TOPIC_PREFIX = 'bricklet/lcd_20x4'
@@ -745,6 +754,27 @@ class BrickletLCD20x4Proxy(DeviceProxy):
                     ('set_custom_character', 'custom_character/set', ['index', 'character']),
                     ('set_default_text', 'default_text/set', ['line', 'text']),
                     ('set_default_text_counter', 'default_text_counter/set', ['counter'])]
+
+    def update_extra_getters(self):
+        custom_character = {'0': [0]*8, '1': [0]*8, '2': [0]*8, '3': [0]*8, '4': [0]*8, '5': [0]*8, '6': [0]*8, '7': [0]*8}
+
+        for index in range(8):
+            try:
+                custom_character[str(index)] = self.device.get_custom_character(index)
+            except:
+                pass
+
+        self.publish_values('custom_character', **custom_character)
+
+        default_text = {'0': '', '1': '', '2': '', '3': ''}
+
+        for line in range(4):
+            try:
+                default_text[str(line)] = self.device.get_default_text(line)
+            except:
+                pass
+
+        self.publish_values('default_text', **default_text)
 
     def cb_button_pressed(self, button):
         self.last_button_pressed[str(button)] = True
