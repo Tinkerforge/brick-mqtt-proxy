@@ -630,7 +630,7 @@ class BrickletIndustrialQuadRelayProxy(DeviceProxy):
                     ('set_monoflop', 'monoflop/set', ['selection_mask', 'value_mask', 'time']),
                     ('set_group', 'group/set', ['group'])]
 
-# FIXME: get_port, get_port_configuration, get_edge_count, get_port_monoflop and get_edge_count_config need special handling
+# FIXME: get_edge_count, get_port_monoflop and get_edge_count_config need special handling
 # FIXME: handle monoflop_done callback?
 # FIXME: handle interrupt callback, including get_port_interrupt and set_port_interrupt?
 class BrickletIO16Proxy(DeviceProxy):
@@ -641,6 +641,27 @@ class BrickletIO16Proxy(DeviceProxy):
                     ('set_port_monoflop', 'port_monoflop/set', ['port', 'selection_mask', 'value_mask', 'time']),
                     ('set_selected_values', 'selected_values/set', ['port', 'selection_mask', 'value_mask']),
                     ('set_edge_count_config', 'edge_count_config/set', ['port', 'edge_type', 'debounce'])]
+
+    def update_extra_getters(self):
+        port = {'a': 0, 'b': 0}
+        port_configuration = {'a': {'direction_mask': 0, 'value_mask': 0}, 'b': {'direction_mask': 0, 'value_mask': 0}}
+
+        for c in ['a', 'b']:
+            try:
+                port[c] = self.device.get_port(c)
+            except:
+                pass
+
+            try:
+                config = self.device.get_port_configuration(c)
+
+                port_configuration[c]['direction_mask'] = config.direction_mask
+                port_configuration[c]['value_mask'] = config.value_mask
+            except:
+                pass
+
+        self.publish_values('port', **port)
+        self.publish_values('port_configuration', **port_configuration)
 
 # FIXME: get_edge_count, get_monoflop and get_edge_count_config need special handling
 # FIXME: handle monoflop_done callback?
