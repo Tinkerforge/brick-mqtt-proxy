@@ -1181,8 +1181,8 @@ class Proxy(object):
                 if len(payload) > 0:
                     try:
                         payload = json.loads(message.payload.decode('UTF-8'))
-                    except:
-                        logging.warn('Received message with invalid payload for topic ' + message.topic) # FIXME
+                    except Exception as e:
+                        logging.warn('Received message with invalid JSON payload for topic ' + message.topic + ': ' + str(e))
                         return
                 else:
                     payload = {}
