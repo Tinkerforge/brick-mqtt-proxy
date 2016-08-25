@@ -78,6 +78,8 @@ from tinkerforge.bricklet_moisture import BrickletMoisture
 from tinkerforge.bricklet_motion_detector import BrickletMotionDetector
 from tinkerforge.bricklet_multi_touch import BrickletMultiTouch
 # FIXME: NFC/RFID Bricklet not handled yet
+from tinkerforge.bricklet_oled_128x64 import BrickletOLED128x64
+from tinkerforge.bricklet_oled_64x48 import BrickletOLED64x48
 # FIXME: Piezo Buzzer Bricklet not handled yet
 from tinkerforge.bricklet_piezo_speaker import BrickletPiezoSpeaker
 from tinkerforge.bricklet_ptc import BrickletPTC
@@ -893,6 +895,26 @@ class BrickletMultiTouchProxy(DeviceProxy):
                                       self.cb_touch_state)
 
 # FIXME: NFC/RFID Bricklet not handled yet
+
+class BrickletOLED128x64Proxy(DeviceProxy):
+    DEVICE_CLASS = BrickletOLED128x64
+    TOPIC_PREFIX = 'bricklet/oled_128x64'
+    GETTER_SPECS = [('get_display_configuration', 'display_configuration', None)]
+    SETTER_SPECS = [('write', 'write/set', ['data']),
+                    ('new_window', 'new_window/set', ['column_from', 'column_to', 'row_from', 'row_to']),
+                    ('clear_display', 'clear_display/set', []),
+                    ('write_line', 'write_line/set', ['line', 'position', 'text']),
+                    ('set_display_configuration', 'display_configuration/set', ['contrast', 'invert'])]
+
+class BrickletOLED64x48Proxy(DeviceProxy):
+    DEVICE_CLASS = BrickletOLED64x48
+    TOPIC_PREFIX = 'bricklet/oled_64x48'
+    GETTER_SPECS = [('get_display_configuration', 'display_configuration', None)]
+    SETTER_SPECS = [('write', 'write/set', ['data']),
+                    ('new_window', 'new_window/set', ['column_from', 'column_to', 'row_from', 'row_to']),
+                    ('clear_display', 'clear_display/set', []),
+                    ('write_line', 'write_line/set', ['line', 'position', 'text']),
+                    ('set_display_configuration', 'display_configuration/set', ['contrast', 'invert'])]
 
 # FIXME: Piezo Buzzer Bricklet not handled yet
 
