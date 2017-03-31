@@ -1073,19 +1073,22 @@ class BrickletVoltageCurrentProxy(DeviceProxy):
                     ('set_calibration', 'calibration/set', ['gain_multiplier', 'gain_divisor'])]
 
 class Proxy(object):
-    def __init__(self, brickd_host, brickd_port, broker_host, broker_port, update_interval, global_topic_prefix):
+    def __init__(self, brickd_host, brickd_port, broker_host, broker_port, update_interval, global_topic_prefix, broker_username=None, broker_password=None):
         self.brickd_host = brickd_host
         self.brickd_port = brickd_port
         self.broker_host = broker_host
         self.broker_port = broker_port
         self.update_interval = update_interval
         self.global_topic_prefix = global_topic_prefix
+        self.broker_username = broker_username
+        self.broker_password = broker_password
 
         self.ipcon = IPConnection()
         self.ipcon.register_callback(IPConnection.CALLBACK_CONNECTED, self.ipcon_cb_connected)
         self.ipcon.register_callback(IPConnection.CALLBACK_ENUMERATE, self.ipcon_cb_enumerate)
 
         self.client = mqtt.Client()
+
         self.client.on_connect = self.mqtt_on_connect
         self.client.on_disconnect = self.mqtt_on_disconnect
         self.client.on_message = self.mqtt_on_message
@@ -1097,6 +1100,9 @@ class Proxy(object):
             self.device_proxy_classes[subclass.DEVICE_CLASS.DEVICE_IDENTIFIER] = subclass
 
     def connect(self):
+        if self.broker_username is not None:
+            self.client.username_pw_set(self.broker_username, self.broker_password)
+
         self.client.connect(self.broker_host, self.broker_port)
         self.client.loop_start()
 
@@ -1212,6 +1218,10 @@ if __name__ == '__main__':
                         help='hostname or IP address of MQTT broker (default: {0})'.format(BROKER_HOST))
     parser.add_argument('--broker-port', dest='broker_port', type=int, default=BROKER_PORT,
                         help='port number of MQTT broker (default: {0})'.format(BROKER_PORT))
+    parser.add_argument('--broker-username', dest='broker_username', type=str, default=None,
+                        help='username for the MQTT broker connection (optional, default: None)')
+    parser.add_argument('--broker-password', dest='broker_password', type=str, default=None,
+                        help='password for the MQTT broker connection (optional, default: None)')
     parser.add_argument('--update-interval', dest='update_interval', type=parse_positive_int, default=UPDATE_INTERVAL,
                         help='update interval in seconds (default: {0})'.format(UPDATE_INTERVAL))
     parser.add_argument('--global-topic-prefix', dest='global_topic_prefix', type=str, default=GLOBAL_TOPIC_PREFIX,
@@ -1229,5 +1239,6 @@ if __name__ == '__main__':
         global_topic_prefix += '/'
 
     proxy = Proxy(args.brickd_host, args.brickd_port, args.broker_host,
-                  args.broker_port, args.update_interval, global_topic_prefix)
+                  args.broker_port, args.update_interval, global_topic_prefix,
+                  args.broker_username, args.broker_password)
     proxy.connect()
