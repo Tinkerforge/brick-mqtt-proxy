@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Brick MQTT Proxy
-Copyright (C) 2015-2016 Matthias Bolte <matthias@tinkerforge.com>
+Copyright (C) 2015-2017 Matthias Bolte <matthias@tinkerforge.com>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -1219,9 +1219,9 @@ if __name__ == '__main__':
     parser.add_argument('--broker-port', dest='broker_port', type=int, default=BROKER_PORT,
                         help='port number of MQTT broker (default: {0})'.format(BROKER_PORT))
     parser.add_argument('--broker-username', dest='broker_username', type=str, default=None,
-                        help='username for the MQTT broker connection (optional, default: None)')
+                        help='username for the MQTT broker connection')
     parser.add_argument('--broker-password', dest='broker_password', type=str, default=None,
-                        help='password for the MQTT broker connection (optional, default: None)')
+                        help='password for the MQTT broker connection')
     parser.add_argument('--update-interval', dest='update_interval', type=parse_positive_int, default=UPDATE_INTERVAL,
                         help='update interval in seconds (default: {0})'.format(UPDATE_INTERVAL))
     parser.add_argument('--global-topic-prefix', dest='global_topic_prefix', type=str, default=GLOBAL_TOPIC_PREFIX,
@@ -1229,6 +1229,9 @@ if __name__ == '__main__':
     parser.add_argument('--debug', dest='debug', action='store_true', help='enable debug output')
 
     args = parser.parse_args(sys.argv[1:])
+
+    if args.broker_username is None and args.broker_password is not None:
+        parser.error('--broker-password cannot be used without --broker-username')
 
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
