@@ -1106,10 +1106,10 @@ class Proxy(object):
     def connect(self):
         if self.broker_username is not None:
             self.client.username_pw_set(self.broker_username, self.broker_password)
-        
+
         if self.broker_certificate is not None:
             self.client.tls_set(self.broker_certificate)
-        
+
         if self.broker_tls_insecure:
             self.client.tls_insecure_set(True)
 
@@ -1234,7 +1234,7 @@ if __name__ == '__main__':
                         help='password for the MQTT broker connection')
     parser.add_argument('--broker-certificate', dest='broker_certificate', type=str, default=None,
                         help='Certificate Authority certificate file used for SSL/TLS connections')
-    parser.add_argument('--broker-tls-insecure', dest='broker_tls_insecure', action='store_true', 
+    parser.add_argument('--broker-tls-insecure', dest='broker_tls_insecure', action='store_true',
                         help='disable verification of the server hostname in the server certificat for the MQTT broker connection')
     parser.add_argument('--update-interval', dest='update_interval', type=parse_positive_int, default=UPDATE_INTERVAL,
                         help='update interval in seconds (default: {0})'.format(UPDATE_INTERVAL))
