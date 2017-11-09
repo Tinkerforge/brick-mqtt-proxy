@@ -1073,18 +1073,20 @@ class BrickletVoltageCurrentProxy(DeviceProxy):
                     ('set_calibration', 'calibration/set', ['gain_multiplier', 'gain_divisor'])]
 
 class Proxy(object):
-    def __init__(self, brickd_host, brickd_port, broker_host, broker_port, update_interval, global_topic_prefix, broker_username=None, broker_password=None, broker_tls_insecure=False, broker_certificate=None):
+    def __init__(self, brickd_host, brickd_port, broker_host, broker_port,
+                 broker_username, broker_password, broker_certificate, broker_tls_insecure,
+                 update_interval, global_topic_prefix):
         self.brickd_host = brickd_host
         self.brickd_port = brickd_port
         self.broker_host = broker_host
         self.broker_port = broker_port
-        self.update_interval = update_interval
-        self.global_topic_prefix = global_topic_prefix
         self.broker_username = broker_username
         self.broker_password = broker_password
-        self.broker_tls_insecure = broker_tls_insecure
         self.broker_certificate = broker_certificate
-        
+        self.broker_tls_insecure = broker_tls_insecure
+        self.update_interval = update_interval
+        self.global_topic_prefix = global_topic_prefix
+
         self.ipcon = IPConnection()
         self.ipcon.register_callback(IPConnection.CALLBACK_CONNECTED, self.ipcon_cb_connected)
         self.ipcon.register_callback(IPConnection.CALLBACK_ENUMERATE, self.ipcon_cb_enumerate)
@@ -1254,6 +1256,8 @@ if __name__ == '__main__':
         global_topic_prefix += '/'
 
     proxy = Proxy(args.brickd_host, args.brickd_port, args.broker_host,
-                  args.broker_port, args.update_interval, global_topic_prefix,
-                  args.broker_username, args.broker_password, args.broker_tls_insecure, args.broker_certificate)
+                  args.broker_port, args.broker_username, args.broker_password,
+                  args.broker_certificate, args.broker_tls_insecure,
+                  args.update_interval, global_topic_prefix)
+
     proxy.connect()
