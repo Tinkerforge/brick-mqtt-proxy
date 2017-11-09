@@ -1073,7 +1073,7 @@ class BrickletVoltageCurrentProxy(DeviceProxy):
                     ('set_calibration', 'calibration/set', ['gain_multiplier', 'gain_divisor'])]
 
 class Proxy(object):
-    def __init__(self, brickd_host, brickd_port, broker_host, broker_port, update_interval, global_topic_prefix, broker_username=None, broker_password=None):
+    def __init__(self, brickd_host, brickd_port, broker_host, broker_port, update_interval, global_topic_prefix, broker_username=None, broker_password=None, broker_tls_insecure=False, broker_certificate=None):
         self.brickd_host = brickd_host
         self.brickd_port = brickd_port
         self.broker_host = broker_host
@@ -1082,7 +1082,9 @@ class Proxy(object):
         self.global_topic_prefix = global_topic_prefix
         self.broker_username = broker_username
         self.broker_password = broker_password
-
+        self.broker_tls_insecure = broker_tls_insecure
+        self.broker_certificate = broker_certificate
+        
         self.ipcon = IPConnection()
         self.ipcon.register_callback(IPConnection.CALLBACK_CONNECTED, self.ipcon_cb_connected)
         self.ipcon.register_callback(IPConnection.CALLBACK_ENUMERATE, self.ipcon_cb_enumerate)
@@ -1102,6 +1104,12 @@ class Proxy(object):
     def connect(self):
         if self.broker_username is not None:
             self.client.username_pw_set(self.broker_username, self.broker_password)
+        
+        if self.broker_certificate is not None:
+            self.client.tls_set(self.broker_certificate)
+        
+        if self.broker_tls_insecure:
+            self.client.tls_insecure_set(True)
 
         self.client.connect(self.broker_host, self.broker_port)
         self.client.loop_start()
@@ -1222,6 +1230,10 @@ if __name__ == '__main__':
                         help='username for the MQTT broker connection')
     parser.add_argument('--broker-password', dest='broker_password', type=str, default=None,
                         help='password for the MQTT broker connection')
+    parser.add_argument('--broker-certificate', dest='broker_certificate', type=str, default=None,
+                        help='Certificate Authority certificate file used for SSL/TLS connections')
+    parser.add_argument('--broker-tls-insecure', dest='broker_tls_insecure', action='store_true', 
+                        help='disable verification of the server hostname in the server certificat for the MQTT broker connection')
     parser.add_argument('--update-interval', dest='update_interval', type=parse_positive_int, default=UPDATE_INTERVAL,
                         help='update interval in seconds (default: {0})'.format(UPDATE_INTERVAL))
     parser.add_argument('--global-topic-prefix', dest='global_topic_prefix', type=str, default=GLOBAL_TOPIC_PREFIX,
@@ -1243,5 +1255,5 @@ if __name__ == '__main__':
 
     proxy = Proxy(args.brickd_host, args.brickd_port, args.broker_host,
                   args.broker_port, args.update_interval, global_topic_prefix,
-                  args.broker_username, args.broker_password)
+                  args.broker_username, args.broker_password, args.broker_tls_insecure, args.broker_certificate)
     proxy.connect()
