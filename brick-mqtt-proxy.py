@@ -1235,7 +1235,7 @@ if __name__ == '__main__':
     parser.add_argument('--broker-certificate', dest='broker_certificate', type=str, default=None,
                         help='Certificate Authority certificate file used for SSL/TLS connections')
     parser.add_argument('--broker-tls-insecure', dest='broker_tls_insecure', action='store_true',
-                        help='disable verification of the server hostname in the server certificat for the MQTT broker connection')
+                        help='disable verification of the server hostname in the server certificate for the MQTT broker connection')
     parser.add_argument('--update-interval', dest='update_interval', type=parse_positive_int, default=UPDATE_INTERVAL,
                         help='update interval in seconds (default: {0})'.format(UPDATE_INTERVAL))
     parser.add_argument('--global-topic-prefix', dest='global_topic_prefix', type=str, default=GLOBAL_TOPIC_PREFIX,
