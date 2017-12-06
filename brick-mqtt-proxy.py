@@ -58,6 +58,7 @@ from tinkerforge.bricklet_dust_detector import BrickletDustDetector
 from tinkerforge.bricklet_gps import BrickletGPS
 from tinkerforge.bricklet_hall_effect import BrickletHallEffect
 from tinkerforge.bricklet_humidity import BrickletHumidity
+from tinkerforge.bricklet_humidity_v2 import BrickletHumidityV2
 from tinkerforge.bricklet_industrial_analog_out import BrickletIndustrialAnalogOut
 from tinkerforge.bricklet_industrial_digital_in_4 import BrickletIndustrialDigitalIn4
 from tinkerforge.bricklet_industrial_digital_out_4 import BrickletIndustrialDigitalOut4
@@ -564,6 +565,17 @@ class BrickletHumidityProxy(DeviceProxy):
     DEVICE_CLASS = BrickletHumidity
     TOPIC_PREFIX = 'bricklet/humidity'
     GETTER_SPECS = [('get_humidity', 'humidity', 'humidity')]
+
+class BrickletHumidityV2Proxy(DeviceProxy):
+    DEVICE_CLASS = BrickletHumidityV2
+    TOPIC_PREFIX = 'bricklet/humidity_v2'
+    GETTER_SPECS = [('get_humidity', 'humidity', 'humidity'),
+                    ('get_temperature', 'temperature', 'temperature'),
+                    ('get_heater_configuration', 'heater_config', 'heater_config'),
+                    ('get_moving_average_configuration', 'moving_average_configuration', None),
+                    ('get_chip_temperature', 'chip_temperature', 'temperature')]
+    SETTER_SPECS = [('set_heater_configuration', 'heater_configuration/set', ['heater_config']),
+                    ('set_moving_average_configuration', 'moving_average_configuration/set', ['moving_average_length_humidity', 'moving_average_length_temperature'])]
 
 class BrickletIndustrialAnalogOutProxy(DeviceProxy):
     DEVICE_CLASS = BrickletIndustrialAnalogOut
