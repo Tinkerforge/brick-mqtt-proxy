@@ -99,6 +99,7 @@ from tinkerforge.bricklet_tilt import BrickletTilt
 from tinkerforge.bricklet_uv_light import BrickletUVLight
 from tinkerforge.bricklet_voltage import BrickletVoltage
 from tinkerforge.bricklet_voltage_current import BrickletVoltageCurrent
+from tinkerforge.bricklet_rgb_led_button import BrickletRGBLEDButton
 
 class Getter(object):
     def __init__(self, proxy, getter_name, topic_suffix, result_name):
@@ -1083,6 +1084,29 @@ class BrickletVoltageCurrentProxy(DeviceProxy):
                     ('get_calibration', 'calibration', None)]
     SETTER_SPECS = [('set_configuration', 'configuration/set', ['averaging', 'voltage_conversion_time', 'current_conversion_time']),
                     ('set_calibration', 'calibration/set', ['gain_multiplier', 'gain_divisor'])]
+
+class BrickletRGBLEDButtonProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletRGBLEDButton
+    TOPIC_PREFIX = 'bricklet/rgb_led_button'
+    GETTER_SPECS = [('get_color', 'color', None),
+                    ('get_button_state', 'button_state', 'button_state'),
+                    ('get_color_calibration', 'color_calibration', None),
+                    ('get_chip_temperature', 'chip_temperature', 'temperature')]
+    SETTER_SPECS = [('set_color', 'color/set', ['red', 'green', 'blue']),
+                    ('set_color_calibration', 'color_calibration/set', ['red', 'green', 'blue'])]
+
+    def cb_button_state_changed(self, button_state):
+        self.publish_values('button_state', button_state = button_state)
+
+    def setup_callbacks(self):
+        try:
+            button_state = self.device.get_button_state()
+            self.publish_values('button_state', button_state = button_state)
+        except:
+            pass
+
+        self.device.register_callback(BrickletRGBLEDButton.CALLBACK_BUTTON_STATE_CHANGED,
+                                      self.cb_button_state_changed)
 
 class Proxy(object):
     def __init__(self, brickd_host, brickd_port, broker_host, broker_port,
