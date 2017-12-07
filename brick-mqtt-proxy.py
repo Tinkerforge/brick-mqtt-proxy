@@ -103,6 +103,7 @@ from tinkerforge.bricklet_voltage import BrickletVoltage
 from tinkerforge.bricklet_voltage_current import BrickletVoltageCurrent
 from tinkerforge.bricklet_rgb_led_button import BrickletRGBLEDButton
 from tinkerforge.bricklet_thermal_imaging import BrickletThermalImaging
+from tinkerforge.bricklet_motorized_linear_poti import BrickletMotorizedLinearPoti
 
 class Getter(object):
     def __init__(self, proxy, getter_name, topic_suffix, result_name):
@@ -1201,6 +1202,16 @@ class BrickletThermalImagingProxy(DeviceProxy):
                     ('set_high_contrast_config', 'high_contrast_config/set', ['region_of_interest', 'dampening_factor', 'clip_limit', 'empty_counts']),
                     ('reset', 'reset/set', []),
                     ('set_image_transfer_config', 'image_transfer_config/set', ['config'])]
+
+class BrickletMotorizedLinearPotiProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletMotorizedLinearPoti
+    TOPIC_PREFIX = 'bricklet/motorized_linear_poti'
+    GETTER_SPECS = [('get_position', 'position', 'position'),
+                    ('get_motor_position', 'motor_position', None),
+                    ('get_chip_temperature', 'chip_temperature', 'temperature')]
+    SETTER_SPECS = [('set_motor_position', 'motor_position/set', ['position', 'drive_mode', 'hold_position']),
+                    ('calibrate', 'calibrate/set', []),
+                    ('reset', 'reset/set', [])]
 
 class Proxy(object):
     def __init__(self, brickd_host, brickd_port, broker_host, broker_port,
