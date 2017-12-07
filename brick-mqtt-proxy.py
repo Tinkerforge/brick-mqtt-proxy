@@ -56,6 +56,7 @@ from tinkerforge.bricklet_dual_button import BrickletDualButton
 from tinkerforge.bricklet_dual_relay import BrickletDualRelay
 from tinkerforge.bricklet_dust_detector import BrickletDustDetector
 from tinkerforge.bricklet_gps import BrickletGPS
+from tinkerforge.bricklet_gps_v2 import BrickletGPSV2
 from tinkerforge.bricklet_hall_effect import BrickletHallEffect
 from tinkerforge.bricklet_humidity import BrickletHumidity
 from tinkerforge.bricklet_humidity_v2 import BrickletHumidityV2
@@ -552,6 +553,60 @@ class BrickletGPSProxy(DeviceProxy):
                     ('get_motion', 'motion', None),
                     ('get_date_time', 'date_time', 'date_time')]
     SETTER_SPECS = [('restart', 'restart/set', ['restart_type'])]
+
+
+class BrickletGPSV2Proxy(DeviceProxy):
+    def __init__(self, uid, connected_uid, position, hardware_version,
+                 firmware_version, ipcon, client, update_interval, global_topic_prefix):
+        self.result_extra = None
+        self.last_result_extra = None
+
+        DeviceProxy.__init__(self, uid, connected_uid, position, hardware_version,
+                             firmware_version, ipcon, client, update_interval, global_topic_prefix)
+
+    DEVICE_CLASS = BrickletGPSV2
+    TOPIC_PREFIX = 'bricklet/gps_v2'
+    GETTER_SPECS = [('get_coordinates', 'coordinates', None),
+                    ('get_status', 'status', None),
+                    ('get_altitude', 'altitude', None),
+                    ('get_motion', 'motion', None),
+                    ('get_date_time', 'date_time', None),
+                    ('get_fix_led_config', 'fix_led_config', 'fix_led_config'),
+                    ('get_sbas_config', 'sbas_config', 'sbas_config')]
+    SETTER_SPECS = [('restart', 'restart/set', ['restart_type']),
+                    ('set_fix_led_config', 'fix_led_config/set', ['config']),
+                    ('set_sbas_config', 'sbas_config/set', ['sbas_config'])]
+    EXTRA_SUBSCRIPTIONS = ['_satellite_system_status/set']
+
+    def update_extra_getters(self):
+        try:
+            self.result_extra = self.device.get_satellite_system_status(BrickletGPSV2.SATELLITE_SYSTEM_GPS)
+        except:
+            self.result_extra = self.last_result_extra
+
+        if self.result_extra != None and self.result_extra != self.last_result_extra:
+            payload = {}
+
+            # It is a namedtuple.
+            for field in self.result_extra._fields:
+                payload[field] = getattr(self.result_extra, field)
+
+            self.publish_values('satellite_system_status', **payload)
+
+        self.last_result_extra = self.result_extra
+
+    def handle_extra_message(self, topic_suffix, payload):
+        if topic_suffix == '_satellite_system_status/set':
+            try:
+                result = self.device.get_satellite_system_status(payload['satellite_system'])
+
+                # It is a namedtuple.
+                for field in result._fields:
+                    payload[field] = getattr(result, field)
+
+                self.publish_values('satellite_system_status', **payload)
+            except:
+                pass
 
 # FIXME: get_edge_count needs special handling
 class BrickletHallEffectProxy(DeviceProxy):
