@@ -91,7 +91,7 @@ from tinkerforge.bricklet_rgb_led import BrickletRGBLED
 from tinkerforge.bricklet_rgb_led_matrix import BrickletRGBLEDMatrix
 from tinkerforge.bricklet_rotary_encoder import BrickletRotaryEncoder
 from tinkerforge.bricklet_rotary_poti import BrickletRotaryPoti
-# FIXME: RS232 Bricklet not handled yet
+from tinkerforge.bricklet_rs232 import BrickletRS232
 from tinkerforge.bricklet_segment_display_4x7 import BrickletSegmentDisplay4x7
 from tinkerforge.bricklet_solid_state_relay import BrickletSolidStateRelay
 from tinkerforge.bricklet_sound_intensity import BrickletSoundIntensity
@@ -104,6 +104,7 @@ from tinkerforge.bricklet_voltage_current import BrickletVoltageCurrent
 from tinkerforge.bricklet_rgb_led_button import BrickletRGBLEDButton
 from tinkerforge.bricklet_thermal_imaging import BrickletThermalImaging
 from tinkerforge.bricklet_motorized_linear_poti import BrickletMotorizedLinearPoti
+from tinkerforge.bricklet_can import BrickletCAN
 
 class Getter(object):
     def __init__(self, proxy, getter_name, topic_suffix, result_name):
@@ -1095,7 +1096,23 @@ class BrickletRotaryPotiProxy(DeviceProxy):
     TOPIC_PREFIX = 'bricklet/rotary_poti'
     GETTER_SPECS = [('get_position', 'position', 'position')]
 
-# FIXME: RS232 Bricklet not handled yet
+class BrickletRS232Proxy(DeviceProxy):
+    DEVICE_CLASS = BrickletRS232
+    TOPIC_PREFIX = 'bricklet/rs232'
+    GETTER_SPECS = [('read', 'read', None)]
+    SETTER_SPECS = [('set_break_condition', 'break_condition/set', ['break_time'])]
+
+    # Setters which do not follow the typical setter pattern are implemented as
+    # extra setters. In which case returned values of the setter will be published
+    # on "_<SETTER-NAME>/result" topic.
+
+    def handle_extra_message(self, topic_suffix, payload):
+        if topic_suffix == 'write/set':
+            try:
+                result = {"result": self.device.write(payload['message'], payload['length'])}
+                self.publish_values('_write/result', **result)
+            except:
+                pass
 
 class BrickletSegmentDisplay4x7Proxy(DeviceProxy):
     DEVICE_CLASS = BrickletSegmentDisplay4x7
@@ -1212,6 +1229,26 @@ class BrickletMotorizedLinearPotiProxy(DeviceProxy):
     SETTER_SPECS = [('set_motor_position', 'motor_position/set', ['position', 'drive_mode', 'hold_position']),
                     ('calibrate', 'calibrate/set', []),
                     ('reset', 'reset/set', [])]
+
+class BrickletCANProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletCAN
+    TOPIC_PREFIX = 'bricklet/can'
+    GETTER_SPECS = [('read_frame', 'read_frame', None),
+                    ('get_error_log', 'error_log', None)]
+    SETTER_SPECS = []
+    EXTRA_SUBSCRIPTIONS = ['write_frame/set']
+
+    # Setters which do not follow the typical setter pattern are implemented as
+    # extra setters. In which case returned values of the setter will be published
+    # on "_<SETTER-NAME>/result" topic.
+
+    def handle_extra_message(self, topic_suffix, payload):
+        if topic_suffix == 'write_frame/set':
+            try:
+                result = {"result": self.device.write_frame(payload['frame_type'], payload['identifier'], payload['data'], payload['length'])}
+                self.publish_values('_write_frame/result', **result)
+            except:
+                pass
 
 class Proxy(object):
     def __init__(self, brickd_host, brickd_port, broker_host, broker_port,
