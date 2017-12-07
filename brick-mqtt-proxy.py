@@ -102,6 +102,7 @@ from tinkerforge.bricklet_uv_light import BrickletUVLight
 from tinkerforge.bricklet_voltage import BrickletVoltage
 from tinkerforge.bricklet_voltage_current import BrickletVoltageCurrent
 from tinkerforge.bricklet_rgb_led_button import BrickletRGBLEDButton
+from tinkerforge.bricklet_thermal_imaging import BrickletThermalImaging
 
 class Getter(object):
     def __init__(self, proxy, getter_name, topic_suffix, result_name):
@@ -573,7 +574,8 @@ class BrickletGPSV2Proxy(DeviceProxy):
                     ('get_motion', 'motion', None),
                     ('get_date_time', 'date_time', None),
                     ('get_fix_led_config', 'fix_led_config', 'fix_led_config'),
-                    ('get_sbas_config', 'sbas_config', 'sbas_config')]
+                    ('get_sbas_config', 'sbas_config', 'sbas_config'),
+                    ('get_chip_temperature', 'chip_temperature', 'temperature')]
     SETTER_SPECS = [('restart', 'restart/set', ['restart_type']),
                     ('set_fix_led_config', 'fix_led_config/set', ['config']),
                     ('set_sbas_config', 'sbas_config/set', ['sbas_config']),
@@ -1182,6 +1184,23 @@ class BrickletRGBLEDButtonProxy(DeviceProxy):
 
         self.device.register_callback(BrickletRGBLEDButton.CALLBACK_BUTTON_STATE_CHANGED,
                                       self.cb_button_state_changed)
+
+class BrickletThermalImagingProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletThermalImaging
+    TOPIC_PREFIX = 'bricklet/thermal_imaging'
+    GETTER_SPECS = [('get_high_contrast_image', 'high_contrast_image', 'high_contrast_image'),
+                    ('get_temperature_image', 'temperature_image', 'temperature_image'),
+                    ('get_statistics', 'statistics', None),
+                    ('get_resolution', 'resolution', 'resolution'),
+                    ('get_spotmeter_config', 'spotmeter_config', 'spotmeter_config'),
+                    ('get_high_contrast_config', 'high_contrast_config', None),
+                    ('get_chip_temperature', 'chip_temperature', 'temperature'),
+                    ('get_image_transfer_config', 'image_transfer_config', 'config')]
+    SETTER_SPECS = [('set_resolution', 'resolution/set', ['resolution']),
+                    ('set_spotmeter_config', 'spotmeter_config/set', ['region_of_interest']),
+                    ('set_high_contrast_config', 'high_contrast_config/set', ['region_of_interest', 'dampening_factor', 'clip_limit', 'empty_counts']),
+                    ('reset', 'reset/set', []),
+                    ('set_image_transfer_config', 'image_transfer_config/set', ['config'])]
 
 class Proxy(object):
     def __init__(self, brickd_host, brickd_port, broker_host, broker_port,
