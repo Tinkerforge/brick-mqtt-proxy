@@ -1046,9 +1046,10 @@ class BrickletRGBLEDMatrixProxy(DeviceProxy):
                     ('get_chip_temperature', 'chip_temperature', 'temperature')]
     SETTER_SPECS = [('set_red', 'red/set', ['red']),
                     ('set_green', 'green/set', ['green']),
-('set_blue', 'blue/set', ['blue']),
-('set_frame_duration', 'frame_duration/set', ['frame_duration']),
-('draw_frame', 'draw_frame/set', [])]
+                    ('set_blue', 'blue/set', ['blue']),
+                    ('set_frame_duration', 'frame_duration/set', ['frame_duration']),
+                    ('draw_frame', 'draw_frame/set', []),
+                    ('reset', 'reset/set', [])]
 
 class BrickletRotaryEncoderProxy(DeviceProxy):
     DEVICE_CLASS = BrickletRotaryEncoder
