@@ -88,6 +88,7 @@ from tinkerforge.bricklet_ptc import BrickletPTC
 from tinkerforge.bricklet_real_time_clock import BrickletRealTimeClock
 from tinkerforge.bricklet_remote_switch import BrickletRemoteSwitch
 from tinkerforge.bricklet_rgb_led import BrickletRGBLED
+from tinkerforge.bricklet_rgb_led_matrix import BrickletRGBLEDMatrix
 from tinkerforge.bricklet_rotary_encoder import BrickletRotaryEncoder
 from tinkerforge.bricklet_rotary_poti import BrickletRotaryPoti
 # FIXME: RS232 Bricklet not handled yet
@@ -575,7 +576,8 @@ class BrickletGPSV2Proxy(DeviceProxy):
                     ('get_sbas_config', 'sbas_config', 'sbas_config')]
     SETTER_SPECS = [('restart', 'restart/set', ['restart_type']),
                     ('set_fix_led_config', 'fix_led_config/set', ['config']),
-                    ('set_sbas_config', 'sbas_config/set', ['sbas_config'])]
+                    ('set_sbas_config', 'sbas_config/set', ['sbas_config']),
+                    ('reset', 'reset/set', [])]
     EXTRA_SUBSCRIPTIONS = ['_satellite_system_status/set']
 
     def update_extra_getters(self):
@@ -631,7 +633,8 @@ class BrickletHumidityV2Proxy(DeviceProxy):
                     ('get_moving_average_configuration', 'moving_average_configuration', None),
                     ('get_chip_temperature', 'chip_temperature', 'temperature')]
     SETTER_SPECS = [('set_heater_configuration', 'heater_configuration/set', ['heater_config']),
-                    ('set_moving_average_configuration', 'moving_average_configuration/set', ['moving_average_length_humidity', 'moving_average_length_temperature'])]
+                    ('set_moving_average_configuration', 'moving_average_configuration/set', ['moving_average_length_humidity', 'moving_average_length_temperature']),
+                    ('reset', 'reset/set', [])]
 
 class BrickletIndustrialAnalogOutProxy(DeviceProxy):
     DEVICE_CLASS = BrickletIndustrialAnalogOut
@@ -1032,6 +1035,21 @@ class BrickletRGBLEDProxy(DeviceProxy):
     GETTER_SPECS = [('get_rgb_value', 'rgb_value', None)]
     SETTER_SPECS = [('set_rgb_value', 'rgb_value/set', ['r', 'g', 'b'])]
 
+class BrickletRGBLEDMatrixProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletRGBLEDMatrix
+    TOPIC_PREFIX = 'bricklet/rgb_led_matrix'
+    GETTER_SPECS = [('get_red', 'red', 'red'),
+                    ('get_green', 'green', 'green'),
+                    ('get_blue', 'blue', 'blue'),
+                    ('get_frame_duration', 'frame_duration', 'frame_duration'),
+                    ('get_supply_voltage', 'supply_voltage', 'supply_voltage'),
+                    ('get_chip_temperature', 'chip_temperature', 'temperature')]
+    SETTER_SPECS = [('set_red', 'red/set', ['red']),
+                    ('set_green', 'green/set', ['green']),
+('set_blue', 'blue/set', ['blue']),
+('set_frame_duration', 'frame_duration/set', ['frame_duration']),
+('draw_frame', 'draw_frame/set', [])]
+
 class BrickletRotaryEncoderProxy(DeviceProxy):
     DEVICE_CLASS = BrickletRotaryEncoder
     TOPIC_PREFIX = 'bricklet/rotary_encoder'
@@ -1148,7 +1166,8 @@ class BrickletRGBLEDButtonProxy(DeviceProxy):
                     ('get_color_calibration', 'color_calibration', None),
                     ('get_chip_temperature', 'chip_temperature', 'temperature')]
     SETTER_SPECS = [('set_color', 'color/set', ['red', 'green', 'blue']),
-                    ('set_color_calibration', 'color_calibration/set', ['red', 'green', 'blue'])]
+                    ('set_color_calibration', 'color_calibration/set', ['red', 'green', 'blue']),
+                    ('reset', 'reset/set', [])]
 
     def cb_button_state_changed(self, button_state):
         self.publish_values('button_state', button_state = button_state)
