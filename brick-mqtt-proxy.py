@@ -419,6 +419,25 @@ class DeviceProxy(object):
 #   each parameter then the specified setter is called on self.device with the
 #   arguments from the JSON payload.
 #
+#   Getters which require input arguments are provided with the arguments through
+#   setter mechanism. In which case the setter specification is as follows:
+#
+#     (None, <topic-suffix>, [<parameter-name>, ...], {<getter-info>})
+#
+#   In this case the dictionary getter-info has the following fields:
+#
+#   getter_name = Name of the getter to call. This getter will be called with
+#                 the arguments as received on the <topic-suffix> topic as
+#                 described above.
+#
+#   getter_publish_topic = Name of the topic to which the getter return values
+#                          are to be published.
+#
+#   getter_return_value = Fields of the getter return value. If the getter returns
+#                         more than one value then this field should be "None".
+#                         Otherwise the return value field name must be specified
+#                         as a string.
+#
 # - EXTRA_SUBSCRIPTIONS (optional): A list of additional topic suffixes. This
 #   can be used to implement things that don't fit into a setter specification.
 #   The DeviceProxy instance automatically subscribes to the specified topics
