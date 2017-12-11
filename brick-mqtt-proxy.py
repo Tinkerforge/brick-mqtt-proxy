@@ -111,12 +111,14 @@ from tinkerforge.brick_dc import BrickDC
 from tinkerforge.brick_imu import BrickIMU
 from tinkerforge.brick_imu_v2 import BrickIMUV2
 from tinkerforge.brick_master import BrickMaster
+from tinkerforge.brick_servo import BrickServo
 from tinkerforge.brick_silent_stepper import BrickSilentStepper
 
 class Getter(object):
     def __init__(self, proxy, getter_name, parameters, topic_suffix, result_name):
         self.proxy = proxy
-        self.getter = getattr(proxy.device, getter_name)
+        self.getter_name = getter_name
+        self.getter = getattr(proxy.device, self.getter_name)
         self.parameters = parameters
         self.topic_suffix = topic_suffix
         self.result_name = result_name
@@ -161,6 +163,17 @@ class Getter(object):
                     payload[field] = getattr(result, field)
             else:
                 payload[self.result_name] = result
+
+            # FIXME: If a WiFi extension is not present on the stack but something
+            # else that responds to the "get_wifi_configuration" getter of the WiFi
+            # extension is i.e. WiFi Extension 2 then this function call
+            # will return garbage output. In this context garbage UTF-8 value in
+            # the "ssid" field can cause the getter to fail. Hence the following fix.
+            if self.proxy.DEVICE_CLASS.__name__ == 'BrickMaster' and self.getter_name == 'get_wifi_configuration':
+                try:
+                    payload['ssid'].decode('utf-8')
+                except:
+                    payload['ssid'] = ''
 
             self.proxy.publish_values(self.topic_suffix, **payload)
 
@@ -1438,6 +1451,41 @@ class BrickMasterProxy(DeviceProxy):
                     ('enable_status_led', 'enable_status_led/set', []),
                     ('disable_status_led', 'disable_status_led/set', []),
                     ('reset', 'reset/set', [])]
+
+class BrickServoProxy(DeviceProxy):
+    DEVICE_CLASS = BrickServo
+    TOPIC_PREFIX = 'brick/servo'
+    GETTER_SPECS = [('get_output_voltage', None, 'output_voltage', 'voltage'),
+                    ('get_overall_current', None, 'overall_current', 'current'),
+                    ('get_stack_input_voltage', None, 'stack_input_voltage', 'voltage'),
+                    ('is_status_led_enabled', None, 'is_status_led_enabled', 'status_led_enabled'),
+                    ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
+    SETTER_SPECS = [('enable', 'enable/set', ['servo_num']),
+                    ('disable', 'disable/set', ['servo_num']),
+                    (None, 'is_enabled/set', ['servo_num'], {'getter_name': 'is_enabled', 'getter_publish_topic': 'is_enabled', 'getter_return_value': 'enabled'}),
+                    ('set_position', 'position/set', ['servo_num', 'position']),
+                    (None, 'get_position/set', ['servo_num'], {'getter_name': 'get_position', 'getter_publish_topic': 'get_position', 'getter_return_value': 'position'}),
+                    (None, 'get_current_position/set', ['servo_num'], {'getter_name': 'get_current_position', 'getter_publish_topic': 'get_current_position', 'getter_return_value': 'position'}),
+                    ('set_velocity', 'velocity/set', ['servo_num', 'velocity']),
+                    (None, 'get_velocity/set', ['servo_num'], {'getter_name': 'get_velocity', 'getter_publish_topic': 'get_velocity', 'getter_return_value': 'velocity'}),
+                    ('set_acceleration', 'acceleration/set', ['servo_num', 'acceleration']),
+                    (None, 'get_acceleration/set', ['servo_num'], {'getter_name': 'get_acceleration', 'getter_publish_topic': 'get_acceleration', 'getter_return_value': 'acceleration'}),
+                    ('set_output_voltage', 'output_voltage/set', ['voltage']),
+                    ('set_pulse_width', 'pulse_width/set', ['servo_num', 'min', 'max']),
+                    (None, 'get_pulse_width/set', ['servo_num'], {'getter_name': 'get_pulse_width', 'getter_publish_topic': 'get_pulse_width', 'getter_return_value': None}),
+                    ('set_degree', 'degree/set', ['servo_num', 'min', 'max']),
+                    (None, 'get_degree/set', ['servo_num'], {'getter_name': 'get_degree', 'getter_publish_topic': 'get_degree', 'getter_return_value': None}),
+                    ('set_period', 'period/set', ['servo_num', 'period']),
+                    (None, 'get_period/set', ['servo_num'], {'getter_name': 'get_period', 'getter_publish_topic': 'get_period', 'getter_return_value': 'period'}),
+                    (None, 'get_servo_current/set', ['servo_num'], {'getter_name': 'get_servo_current', 'getter_publish_topic': 'get_servo_current', 'getter_return_value': 'current'}),
+                    ('enable_status_led', 'enable_status_led/set', []),
+                    ('disable_status_led', 'disable_status_led/set', []),
+                    ('reset', 'reset/set', [])]
+
+    # Arguments required for a getter must be published to "<GETTER-NAME>/set"
+    # topic which will execute the getter with the provided arguments.
+    # The output of the getter then will be published on the "<GETTER-NAME>"
+    # topic.
 
 class BrickSilentStepperProxy(DeviceProxy):
     DEVICE_CLASS = BrickSilentStepper
