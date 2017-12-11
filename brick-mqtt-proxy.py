@@ -45,7 +45,6 @@ from tinkerforge.bricklet_analog_in_v2 import BrickletAnalogInV2
 from tinkerforge.bricklet_analog_out import BrickletAnalogOut
 from tinkerforge.bricklet_analog_out_v2 import BrickletAnalogOutV2
 from tinkerforge.bricklet_barometer import BrickletBarometer
-# FIXME: CAN Bricklet not handled yet
 from tinkerforge.bricklet_co2 import BrickletCO2
 from tinkerforge.bricklet_color import BrickletColor
 from tinkerforge.bricklet_current12 import BrickletCurrent12
@@ -92,6 +91,7 @@ from tinkerforge.bricklet_rgb_led_matrix import BrickletRGBLEDMatrix
 from tinkerforge.bricklet_rotary_encoder import BrickletRotaryEncoder
 from tinkerforge.bricklet_rotary_poti import BrickletRotaryPoti
 from tinkerforge.bricklet_rs232 import BrickletRS232
+from tinkerforge.bricklet_rs485 import BrickletRS485
 from tinkerforge.bricklet_segment_display_4x7 import BrickletSegmentDisplay4x7
 from tinkerforge.bricklet_solid_state_relay import BrickletSolidStateRelay
 from tinkerforge.bricklet_sound_intensity import BrickletSoundIntensity
@@ -105,6 +105,9 @@ from tinkerforge.bricklet_rgb_led_button import BrickletRGBLEDButton
 from tinkerforge.bricklet_thermal_imaging import BrickletThermalImaging
 from tinkerforge.bricklet_motorized_linear_poti import BrickletMotorizedLinearPoti
 from tinkerforge.bricklet_can import BrickletCAN
+from tinkerforge.brick_silent_stepper import BrickSilentStepper
+from tinkerforge.bricklet_dmx import BrickletDMX
+from tinkerforge.bricklet_thermocouple import BrickletThermocouple
 
 class Getter(object):
     def __init__(self, proxy, getter_name, parameters, topic_suffix, result_name):
@@ -160,10 +163,19 @@ class Getter(object):
         self.last_result = result
 
 class Setter(object):
-    def __init__(self, proxy, setter_name, topic_suffix, parameter_names):
-        self.setter = getattr(proxy.device, setter_name)
+    def __init__(self, proxy, setter_name, topic_suffix, parameter_names, getter_info = None):
+        self.setter = None
+        self.getter = None
+        self.proxy = proxy
+        self.getter_info = getter_info
         self.topic_suffix = topic_suffix
         self.parameter_names = parameter_names
+
+        if setter_name != None:
+            self.setter = getattr(self.proxy.device, setter_name)
+
+        if getter_info != None:
+            self.getter = getattr(self.proxy.device, self.getter_info['getter_name'])
 
     def handle_message(self, payload):
         args = []
@@ -174,10 +186,26 @@ class Setter(object):
             except:
                 return
 
-        try:
-            self.setter(*tuple(args))
-        except:
-            pass
+        if  self.getter_info == None:
+            try:
+                self.setter(*tuple(args))
+            except:
+                pass
+        else:
+            payload = {}
+
+            try:
+                result = self.getter(*tuple(args))
+
+                if isinstance(result, tuple) and hasattr(result, '_fields'): # assume it is a namedtuple
+                    for field in result._fields:
+                        payload[field] = getattr(result, field)
+                else:
+                    payload[self.getter_info['getter_return_value']] = result
+
+                self.proxy.publish_values(self.getter_info['getter_publish_topic'], **payload)
+            except:
+                pass
 
 class DeviceProxy(object):
     GETTER_SPECS = []
@@ -479,8 +507,6 @@ class BrickletBarometerProxy(DeviceProxy):
     SETTER_SPECS = [('set_reference_air_pressure', 'reference_air_pressure/set', ['air_pressure']),
                     ('set_averaging', 'averaging/set', ['moving_average_pressure', 'average_pressure', 'average_temperature'])]
 
-# FIXME: CAN Bricklet not handled yet
-
 class BrickletCO2Proxy(DeviceProxy):
     DEVICE_CLASS = BrickletCO2
     TOPIC_PREFIX = 'bricklet/co2'
@@ -595,11 +621,19 @@ class BrickletGPSV2Proxy(DeviceProxy):
                     ('get_satellite_system_status', {'gps': (BrickletGPSV2.SATELLITE_SYSTEM_GPS,), 'glonass': (BrickletGPSV2.SATELLITE_SYSTEM_GLONASS,), 'galileo': (BrickletGPSV2.SATELLITE_SYSTEM_GALILEO,)}, 'satellite_system_status', None),
                     ('get_fix_led_config', None, 'fix_led_config', 'fix_led_config'),
                     ('get_sbas_config', None, 'sbas_config', 'sbas_config'),
+                    ('get_status_led_config', None, 'status_led_config', 'config'),
                     ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
-    SETTER_SPECS = [('restart', 'restart/set', ['restart_type']),
+    SETTER_SPECS = [(None, 'get_satellite_status/set', ['satellite_system', 'satellite_number'], {'getter_name': 'get_satellite_status', 'getter_publish_topic': 'get_satellite_status', 'getter_return_value': None}),
+                    ('restart', 'restart/set', ['restart_type']),
                     ('set_fix_led_config', 'fix_led_config/set', ['config']),
                     ('set_sbas_config', 'sbas_config/set', ['sbas_config']),
+                    ('set_status_led_config', 'status_led_config/set', ['config']),
                     ('reset', 'reset/set', [])]
+
+    # Arguments required for a getter must be published to "<GETTER-NAME>/set"
+    # topic which will execute the getter with the provided arguments.
+    # The output of the getter then will be published on the "<GETTER-NAME>"
+    # topic.
 
 # FIXME: get_edge_count needs special handling
 class BrickletHallEffectProxy(DeviceProxy):
@@ -622,9 +656,11 @@ class BrickletHumidityV2Proxy(DeviceProxy):
                     ('get_temperature', None, 'temperature', 'temperature'),
                     ('get_heater_configuration', None, 'heater_config', 'heater_config'),
                     ('get_moving_average_configuration', None, 'moving_average_configuration', None),
+                    ('get_status_led_config', None, 'status_led_config', 'config'),
                     ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
     SETTER_SPECS = [('set_heater_configuration', 'heater_configuration/set', ['heater_config']),
                     ('set_moving_average_configuration', 'moving_average_configuration/set', ['moving_average_length_humidity', 'moving_average_length_temperature']),
+                    ('set_status_led_config', 'status_led_config/set', ['config']),
                     ('reset', 'reset/set', [])]
 
 class BrickletIndustrialAnalogOutProxy(DeviceProxy):
@@ -986,19 +1022,26 @@ class BrickletRGBLEDMatrixProxy(DeviceProxy):
                     ('get_blue', None, 'blue', 'blue'),
                     ('get_frame_duration', None, 'frame_duration', 'frame_duration'),
                     ('get_supply_voltage', None, 'supply_voltage', 'supply_voltage'),
+                    ('get_status_led_config', None, 'status_led_config', 'config'),
                     ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
     SETTER_SPECS = [('set_red', 'red/set', ['red']),
                     ('set_green', 'green/set', ['green']),
                     ('set_blue', 'blue/set', ['blue']),
                     ('set_frame_duration', 'frame_duration/set', ['frame_duration']),
                     ('draw_frame', 'draw_frame/set', []),
+                    ('set_status_led_config', 'status_led_config/set', ['config']),
                     ('reset', 'reset/set', [])]
 
 class BrickletRotaryEncoderProxy(DeviceProxy):
     DEVICE_CLASS = BrickletRotaryEncoder
     TOPIC_PREFIX = 'bricklet/rotary_encoder'
     GETTER_SPECS = [('get_count', (False,), 'count', 'count')]
-    EXTRA_SUBSCRIPTIONS = ['_reset_count/set']
+    SETTER_SPECS = [(None, 'get_count/set', ['reset'], {'getter_name': 'get_count', 'getter_publish_topic':'get_count', 'getter_return_value': 'count'})]
+
+    # Arguments required for a getter must be published to "<GETTER-NAME>/set"
+    # topic which will execute the getter with the provided arguments.
+    # The output of the getter then will be published on the "<GETTER-NAME>"
+    # topic.
 
     def cb_pressed(self):
         self.publish_values('pressed', pressed=True)
@@ -1017,13 +1060,6 @@ class BrickletRotaryEncoderProxy(DeviceProxy):
         self.device.register_callback(BrickletRotaryEncoder.CALLBACK_RELEASED,
                                       self.cb_released)
 
-    def handle_extra_message(self, topic_suffix, payload):
-        if topic_suffix == '_reset_count/set':
-            try:
-                self.publish_values('count', count=self.device.get_count(True))
-            except:
-                pass
-
 # FIXME: expose analog_value getter?
 class BrickletRotaryPotiProxy(DeviceProxy):
     DEVICE_CLASS = BrickletRotaryPoti
@@ -1033,20 +1069,46 @@ class BrickletRotaryPotiProxy(DeviceProxy):
 class BrickletRS232Proxy(DeviceProxy):
     DEVICE_CLASS = BrickletRS232
     TOPIC_PREFIX = 'bricklet/rs232'
-    GETTER_SPECS = [('read', None, 'read', None)]
-    SETTER_SPECS = [('set_break_condition', 'break_condition/set', ['break_time'])]
+    GETTER_SPECS = [('read', None, 'read', None),
+                    ('get_configuration', None, 'configuration', None)]
+    SETTER_SPECS = [(None, 'write/set', ['message'], {'getter_name': 'write', 'getter_publish_topic':'write', 'getter_return_value': 'written'}),
+                    ('set_configuration', 'configuration/set', ['baudrate', 'parity', 'stopbits', 'wordlength', 'hardware_flowcontrol', 'software_flowcontrol']),
+                    ('set_break_condition', 'break_condition/set', ['break_time'])]
 
-    # Setters which do not follow the typical setter pattern are implemented as
-    # extra setters. In which case returned values of the setter will be published
-    # on "_<SETTER-NAME>/result" topic.
+    # Arguments required for a getter must be published to "<GETTER-NAME>/set"
+    # topic which will execute the getter with the provided arguments.
+    # The output of the getter then will be published on the "<GETTER-NAME>"
+    # topic.
 
-    def handle_extra_message(self, topic_suffix, payload):
-        if topic_suffix == 'write/set':
-            try:
-                result = {"result": self.device.write(payload['message'], payload['length'])}
-                self.publish_values('_write/result', **result)
-            except:
-                pass
+class BrickletRS485Proxy(DeviceProxy):
+    DEVICE_CLASS = BrickletRS485
+    TOPIC_PREFIX = 'bricklet/rs485'
+    GETTER_SPECS = [('get_rs485_configuration', None, 'rs485_configuration', None),
+                    ('get_modbus_configuration', None, 'modbus_configuration', None),
+                    ('get_mode', None, 'mode', 'mode'),
+                    ('get_communication_led_config', None, 'communication_led_config', 'config'),
+                    ('get_error_led_config', None, 'error_led_config', 'config'),
+                    ('get_buffer_config', None, 'buffer_config', None),
+                    ('get_buffer_status', None, 'buffer_status', None),
+                    ('get_error_count', None, 'error_count', None),
+                    ('get_modbus_common_error_count', None, 'modbus_common_error_count', None),
+                    ('get_status_led_config', None, 'status_led_config', 'config'),
+                    ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
+    SETTER_SPECS = [(None, 'write/set', ['message'], {'getter_name': 'write', 'getter_publish_topic':'write', 'getter_return_value': 'written'}),
+                    (None, 'read/set', ['length'], {'getter_name': 'read', 'getter_publish_topic':'read', 'getter_return_value': 'message'}),
+                    ('set_rs485_configuration', 'rs485_configuration/set', ['baudrate', 'parity', 'stopbits', 'wordlength', 'duplex']),
+                    ('set_modbus_configuration', 'modbus_configuration/set', ['slave_address', 'master_request_timeout']),
+                    ('set_mode', 'mode/set', ['mode']),
+                    ('set_communication_led_config', 'communication_led_config/set', ['config']),
+                    ('set_error_led_config', 'error_led_config/set', ['config']),
+                    ('set_buffer_config', 'buffer_config/set', ['send_buffer_size', 'receive_buffer_size']),
+                    ('set_status_led_config', 'status_led_config/set', ['config']),
+                    ('reset', 'reset/set', [])]
+
+    # Arguments required for a getter must be published to "<GETTER-NAME>/set"
+    # topic which will execute the getter with the provided arguments.
+    # The output of the getter then will be published on the "<GETTER-NAME>"
+    # topic.
 
 class BrickletSegmentDisplay4x7Proxy(DeviceProxy):
     DEVICE_CLASS = BrickletSegmentDisplay4x7
@@ -1119,9 +1181,11 @@ class BrickletRGBLEDButtonProxy(DeviceProxy):
     GETTER_SPECS = [('get_color', None, 'color', None),
                     ('get_button_state', None, 'button_state', 'button_state'),
                     ('get_color_calibration', None, 'color_calibration', None),
+                    ('get_status_led_config', None, 'status_led_config', 'config'),
                     ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
     SETTER_SPECS = [('set_color', 'color/set', ['red', 'green', 'blue']),
                     ('set_color_calibration', 'color_calibration/set', ['red', 'green', 'blue']),
+                    ('set_status_led_config', 'status_led_config/set', 'config'),
                     ('reset', 'reset/set', [])]
 
     def cb_button_state_changed(self, button_state):
@@ -1146,11 +1210,13 @@ class BrickletThermalImagingProxy(DeviceProxy):
                     ('get_resolution', None, 'resolution', 'resolution'),
                     ('get_spotmeter_config', None, 'spotmeter_config', 'spotmeter_config'),
                     ('get_high_contrast_config', None, 'high_contrast_config', None),
+                    ('get_status_led_config', None, 'status_led_config', 'config'),
                     ('get_chip_temperature', None, 'chip_temperature', 'temperature'),
                     ('get_image_transfer_config', None, 'image_transfer_config', 'config')]
     SETTER_SPECS = [('set_resolution', 'resolution/set', ['resolution']),
                     ('set_spotmeter_config', 'spotmeter_config/set', ['region_of_interest']),
                     ('set_high_contrast_config', 'high_contrast_config/set', ['region_of_interest', 'dampening_factor', 'clip_limit', 'empty_counts']),
+                    ('set_status_led_config', 'status_led_config/set', ['config']),
                     ('reset', 'reset/set', []),
                     ('set_image_transfer_config', 'image_transfer_config/set', ['config'])]
 
@@ -1159,30 +1225,98 @@ class BrickletMotorizedLinearPotiProxy(DeviceProxy):
     TOPIC_PREFIX = 'bricklet/motorized_linear_poti'
     GETTER_SPECS = [('get_position', None, 'position', 'position'),
                     ('get_motor_position', None, 'motor_position', None),
+                    ('get_status_led_config', None, 'status_led_config', ['config']),
                     ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
     SETTER_SPECS = [('set_motor_position', 'motor_position/set', ['position', 'drive_mode', 'hold_position']),
                     ('calibrate', 'calibrate/set', []),
+                    ('set_status_led_config', 'status_led_config/set', ['config']),
                     ('reset', 'reset/set', [])]
 
 class BrickletCANProxy(DeviceProxy):
     DEVICE_CLASS = BrickletCAN
     TOPIC_PREFIX = 'bricklet/can'
     GETTER_SPECS = [('read_frame', None, 'read_frame', None),
+                    ('get_configuration', None, 'configuration', None),
+                    ('get_read_filter', None, 'read_filter', None),
                     ('get_error_log', None, 'error_log', None)]
-    SETTER_SPECS = []
-    EXTRA_SUBSCRIPTIONS = ['write_frame/set']
+    SETTER_SPECS = [(None, 'write_frame/set', ['frame_type', 'identifier', 'data', 'length'], {'getter_name': 'write_frame', 'getter_publish_topic':'write_frame', 'getter_return_value': 'success'}),
+                    ('set_configuration', 'configuration/set', ['baud_rate', 'transceiver_mode', 'write_timeout']),
+                    ('set_read_filter', 'read_filter/set', ['mode', 'mask', 'filter1', 'filter2'])]
 
-    # Setters which do not follow the typical setter pattern are implemented as
-    # extra setters. In which case returned values of the setter will be published
-    # on "_<SETTER-NAME>/result" topic.
+    # Arguments required for a getter must be published to "<GETTER-NAME>/set"
+    # topic which will execute the getter with the provided arguments.
+    # The output of the getter then will be published on the "<GETTER-NAME>"
+    # topic.
 
-    def handle_extra_message(self, topic_suffix, payload):
-        if topic_suffix == 'write_frame/set':
-            try:
-                result = {"result": self.device.write_frame(payload['frame_type'], payload['identifier'], payload['data'], payload['length'])}
-                self.publish_values('_write_frame/result', **result)
-            except:
-                pass
+class BrickSilentStepperProxy(DeviceProxy):
+    DEVICE_CLASS = BrickSilentStepper
+    TOPIC_PREFIX = 'brick/silent_stepper'
+    GETTER_SPECS = [('get_max_velocity', 'max_velocity', 'max_velocity'),
+                    ('get_current_velocity', 'current_velocity', 'current_velocity'),
+                    ('get_speed_ramping', 'get_speed_ramping', None),
+                    ('get_steps', 'steps', 'steps'),
+                    ('get_remaining_steps', 'remaining_steps', 'remaining_steps'),
+                    ('get_motor_current', 'motor_current', 'motor_current'),
+                    ('is_enabled', 'is_enabled', 'is_enabled'),
+                    ('get_basic_configuration', 'basic_configuration', None),
+                    ('get_current_position', 'current_position', 'position'),
+                    ('get_target_position', 'target_position', 'position'),
+                    ('get_step_configuration', 'step_configuration', None),
+                    ('get_stack_input_voltage', 'stack_input_voltage', 'stack_input_voltage'),
+                    ('get_external_input_voltage', 'external_input_voltage', 'external_input_voltage'),
+                    ('get_spreadcycle_configuration', 'spreadcycle_configuration', None),
+                    ('get_stealth_configuration', 'stealth_configuration', None),
+                    ('get_coolstep_configuration', 'coolstep_configuration', None),
+                    ('get_misc_configuration', 'misc_configuration', None),
+                    ('get_driver_status', 'driver_status', None),
+                    ('get_time_base', 'time_base', None),
+                    ('get_all_data', 'all_data', None),
+                    ('get_chip_temperature', 'chip_temperature', 'temperature')]
+    SETTER_SPECS = [('set_max_velocity', 'max_velocity/set', ['velocity']),
+                    ('set_speed_ramping', 'speed_ramping/set', ['acceleration', 'deacceleration']),
+                    ('full_brake', 'full_brake/set', []),
+                    ('set_steps', 'steps/set', ['steps']),
+                    ('drive_forward', 'drive_forward/set', []),
+                    ('drive_backward', 'drive_backward/set', []),
+                    ('stop', 'stop/set', []),
+                    ('set_motor_current', 'motor_current/set', ['motor_current']),
+                    ('enable', 'enable/set', []),
+                    ('disable', 'disable/set', []),
+                    ('set_basic_configuration', 'basic_configuration/set', ['standstill_current, motor_run_current', 'standstill_delay_time', 'power_down_time, stealth_threshold', 'coolstep_threshold', 'classic_threshold', 'high_velocity_chopper_mode']),
+                    ('set_current_position', 'current_position/set', ['position']),
+                    ('set_target_position', 'target_position/set', ['target_position']),
+                    ('set_step_configuration', 'step_configuration/set', ['step_resolution', 'interpolation']),
+                    ('set_spreadcycle_configuration', 'spreadcycle_configuration/set', ['slow_decay_duration', 'enable_random_slow_decay', 'fast_decay_duration', 'hysteresis_start_value', 'hysteresis_end_value', 'sine_wave_offset', 'chopper_mode', 'comparator_blank_time', 'fast_decay_without_comparator']),
+                    ('set_stealth_configuration', 'stealth_configuration/set', ['enable_stealth', 'amplitude', 'gradient', 'enable_autoscale', 'force_symmetric', 'freewheel_mode']),
+                    ('set_coolstep_configuration', 'coolstep_configuration/set', ['minimum_stallguard_value', 'maximum_stallguard_value', 'current_up_step_width', 'current_down_step_width', 'minimum_current', 'stallguard_threshold_value', 'stallguard_mode']),
+                    ('set_misc_configuration', 'misc_configuration/set', ['disable_short_to_ground_protection', 'synchronize_phase_frequency']),
+                    ('set_time_base', 'time_base/set', ['time_base']),
+                    ('reset', 'reset/set', [])]
+
+class BrickletDMXProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletDMX
+    TOPIC_PREFIX = 'bricklet/dmx'
+    GETTER_SPECS = [('get_dmx_mode', 'dmx_mode', 'dmx_mode'),
+                    ('read_frame', 'read_frame', None),
+                    ('get_frame_duration', 'frame_duration', 'frame_duration'),
+                    ('get_frame_error_count', 'frame_error_count', None),
+                    ('get_communication_led_config', 'communication_led_config', 'config'),
+                    ('get_error_led_config', 'error_led_config', 'config'),
+                    ('get_chip_temperature', 'chip_temperature', 'temperature')]
+    SETTER_SPECS = [('set_dmx_mode', 'dmx_mode/set', ['dmx_mode']),
+                    ('write_frame', 'write_frame/set', ['frame']),
+                    ('set_frame_duration', 'frame_duration/set', ['frame_duration']),
+                    ('set_communication_led_config', 'communication_led_config/set', ['config']),
+                    ('set_error_led_config', 'error_led_config/set', ['config']),
+                    ('reset', 'reset/set', [])]
+
+class BrickletThermocoupleProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletThermocouple
+    TOPIC_PREFIX = 'bricklet/thermocouple'
+    GETTER_SPECS = [('get_temperature', 'temperature', 'temperature'),
+                    ('get_configuration', 'configuration', None),
+                    ('get_error_state', 'error_state', None)]
+    SETTER_SPECS = [('set_configuration', 'configuration/set', ['averaging', 'thermocouple_type', 'filter'])]
 
 class Proxy(object):
     def __init__(self, brickd_host, brickd_port, broker_host, broker_port,
