@@ -105,9 +105,10 @@ from tinkerforge.bricklet_rgb_led_button import BrickletRGBLEDButton
 from tinkerforge.bricklet_thermal_imaging import BrickletThermalImaging
 from tinkerforge.bricklet_motorized_linear_poti import BrickletMotorizedLinearPoti
 from tinkerforge.bricklet_can import BrickletCAN
-from tinkerforge.brick_silent_stepper import BrickSilentStepper
 from tinkerforge.bricklet_dmx import BrickletDMX
 from tinkerforge.bricklet_thermocouple import BrickletThermocouple
+from tinkerforge.brick_dc import BrickDC
+from tinkerforge.brick_silent_stepper import BrickSilentStepper
 
 class Getter(object):
     def __init__(self, proxy, getter_name, parameters, topic_suffix, result_name):
@@ -1266,6 +1267,31 @@ class BrickletCANProxy(DeviceProxy):
     # topic which will execute the getter with the provided arguments.
     # The output of the getter then will be published on the "<GETTER-NAME>"
     # topic.
+
+class BrickDCProxy(DeviceProxy):
+    DEVICE_CLASS = BrickDC
+    TOPIC_PREFIX = 'brick/dc'
+    GETTER_SPECS = [('get_velocity', None, 'velocity', 'velocity'),
+                    ('get_current_velocity', None, 'current_velocity', 'velocity'),
+                    ('get_acceleration', None, 'acceleration', 'acceleration'),
+                    ('is_enabled', None, 'is_enabled', 'enabled'),
+                    ('get_pwm_frequency', None, 'pwm_frequency', 'frequency'),
+                    ('get_stack_input_voltage', None, 'stack_input_voltage', 'voltage'),
+                    ('get_external_input_voltage', None, 'external_input_voltage', 'voltage'),
+                    ('get_current_consumption', None, 'current_consumption', 'current'),
+                    ('get_drive_mode', None, 'drive_mode', 'mode'),
+                    ('is_status_led_enabled', None, 'is_status_led_enabled', 'enabled'),
+                    ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
+    SETTER_SPECS = [('set_velocity', 'velocity/set', ['velocity']),
+                    ('set_acceleration', 'acceleration/set', ['acceleration']),
+                    ('full_brake', 'full_brake/set', []),
+                    ('enable', 'enable/set', []),
+                    ('disable', 'disable/set', []),
+                    ('set_pwm_frequency', 'pwm_frequency/set', ['frequency']),
+                    ('set_drive_mode', 'drive_mode/set', ['mode']),
+                    ('enable_status_led', 'enable_status_led/set', []),
+                    ('disable_status_led', 'disable_status_led/set', []),
+                    ('reset', 'reset/set', [])]
 
 class BrickSilentStepperProxy(DeviceProxy):
     DEVICE_CLASS = BrickSilentStepper
