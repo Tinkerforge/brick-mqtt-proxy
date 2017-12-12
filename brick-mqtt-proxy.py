@@ -46,12 +46,14 @@ from tinkerforge.bricklet_analog_in_v2 import BrickletAnalogInV2
 from tinkerforge.bricklet_analog_out import BrickletAnalogOut
 from tinkerforge.bricklet_analog_out_v2 import BrickletAnalogOutV2
 from tinkerforge.bricklet_barometer import BrickletBarometer
+from tinkerforge.bricklet_can import BrickletCAN
 from tinkerforge.bricklet_co2 import BrickletCO2
 from tinkerforge.bricklet_color import BrickletColor
 from tinkerforge.bricklet_current12 import BrickletCurrent12
 from tinkerforge.bricklet_current25 import BrickletCurrent25
 from tinkerforge.bricklet_distance_ir import BrickletDistanceIR
 from tinkerforge.bricklet_distance_us import BrickletDistanceUS
+from tinkerforge.bricklet_dmx import BrickletDMX
 from tinkerforge.bricklet_dual_button import BrickletDualButton
 from tinkerforge.bricklet_dual_relay import BrickletDualRelay
 from tinkerforge.bricklet_dust_detector import BrickletDustDetector
@@ -78,6 +80,7 @@ from tinkerforge.bricklet_linear_poti import BrickletLinearPoti
 from tinkerforge.bricklet_load_cell import BrickletLoadCell
 from tinkerforge.bricklet_moisture import BrickletMoisture
 from tinkerforge.bricklet_motion_detector import BrickletMotionDetector
+from tinkerforge.bricklet_motorized_linear_poti import BrickletMotorizedLinearPoti
 from tinkerforge.bricklet_multi_touch import BrickletMultiTouch
 from tinkerforge.bricklet_nfc_rfid import BrickletNFCRFID
 from tinkerforge.bricklet_oled_128x64 import BrickletOLED128x64
@@ -88,6 +91,7 @@ from tinkerforge.bricklet_ptc import BrickletPTC
 from tinkerforge.bricklet_real_time_clock import BrickletRealTimeClock
 from tinkerforge.bricklet_remote_switch import BrickletRemoteSwitch
 from tinkerforge.bricklet_rgb_led import BrickletRGBLED
+from tinkerforge.bricklet_rgb_led_button import BrickletRGBLEDButton
 from tinkerforge.bricklet_rgb_led_matrix import BrickletRGBLEDMatrix
 from tinkerforge.bricklet_rotary_encoder import BrickletRotaryEncoder
 from tinkerforge.bricklet_rotary_poti import BrickletRotaryPoti
@@ -98,16 +102,13 @@ from tinkerforge.bricklet_solid_state_relay import BrickletSolidStateRelay
 from tinkerforge.bricklet_sound_intensity import BrickletSoundIntensity
 from tinkerforge.bricklet_temperature import BrickletTemperature
 from tinkerforge.bricklet_temperature_ir import BrickletTemperatureIR
+from tinkerforge.bricklet_thermal_imaging import BrickletThermalImaging
+from tinkerforge.bricklet_thermocouple import BrickletThermocouple
 from tinkerforge.bricklet_tilt import BrickletTilt
 from tinkerforge.bricklet_uv_light import BrickletUVLight
 from tinkerforge.bricklet_voltage import BrickletVoltage
 from tinkerforge.bricklet_voltage_current import BrickletVoltageCurrent
-from tinkerforge.bricklet_rgb_led_button import BrickletRGBLEDButton
-from tinkerforge.bricklet_thermal_imaging import BrickletThermalImaging
-from tinkerforge.bricklet_motorized_linear_poti import BrickletMotorizedLinearPoti
-from tinkerforge.bricklet_can import BrickletCAN
-from tinkerforge.bricklet_dmx import BrickletDMX
-from tinkerforge.bricklet_thermocouple import BrickletThermocouple
+# Bricks
 from tinkerforge.brick_dc import BrickDC
 from tinkerforge.brick_imu import BrickIMU
 from tinkerforge.brick_imu_v2 import BrickIMUV2
@@ -545,6 +546,22 @@ class BrickletBarometerProxy(DeviceProxy):
     SETTER_SPECS = [('set_reference_air_pressure', 'reference_air_pressure/set', ['air_pressure']),
                     ('set_averaging', 'averaging/set', ['moving_average_pressure', 'average_pressure', 'average_temperature'])]
 
+class BrickletCANProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletCAN
+    TOPIC_PREFIX = 'bricklet/can'
+    GETTER_SPECS = [('read_frame', None, 'read_frame', None),
+                    ('get_configuration', None, 'configuration', None),
+                    ('get_read_filter', None, 'read_filter', None),
+                    ('get_error_log', None, 'error_log', None)]
+    SETTER_SPECS = [(None, 'write_frame/set', ['frame_type', 'identifier', 'data', 'length'], {'getter_name': 'write_frame', 'getter_publish_topic':'write_frame', 'getter_return_value': 'success'}),
+                    ('set_configuration', 'configuration/set', ['baud_rate', 'transceiver_mode', 'write_timeout']),
+                    ('set_read_filter', 'read_filter/set', ['mode', 'mask', 'filter1', 'filter2'])]
+
+    # Arguments required for a getter must be published to "<GETTER-NAME>/set"
+    # topic which will execute the getter with the provided arguments.
+    # The output of the getter then will be published on the "<GETTER-NAME>"
+    # topic.
+
 class BrickletCO2Proxy(DeviceProxy):
     DEVICE_CLASS = BrickletCO2
     TOPIC_PREFIX = 'bricklet/co2'
@@ -593,6 +610,23 @@ class BrickletDistanceUSProxy(DeviceProxy):
     GETTER_SPECS = [('get_distance_value', None, 'distance_value', 'distance'),
                     ('get_moving_average', None, 'moving_average', 'average')]
     SETTER_SPECS = [('set_moving_average', 'moving_average/set', ['average'])]
+
+class BrickletDMXProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletDMX
+    TOPIC_PREFIX = 'bricklet/dmx'
+    GETTER_SPECS = [('get_dmx_mode', 'dmx_mode', 'dmx_mode'),
+                    ('read_frame', 'read_frame', None),
+                    ('get_frame_duration', 'frame_duration', 'frame_duration'),
+                    ('get_frame_error_count', 'frame_error_count', None),
+                    ('get_communication_led_config', 'communication_led_config', 'config'),
+                    ('get_error_led_config', 'error_led_config', 'config'),
+                    ('get_chip_temperature', 'chip_temperature', 'temperature')]
+    SETTER_SPECS = [('set_dmx_mode', 'dmx_mode/set', ['dmx_mode']),
+                    ('write_frame', 'write_frame/set', ['frame']),
+                    ('set_frame_duration', 'frame_duration/set', ['frame_duration']),
+                    ('set_communication_led_config', 'communication_led_config/set', ['config']),
+                    ('set_error_led_config', 'error_led_config/set', ['config']),
+                    ('reset', 'reset/set', [])]
 
 class BrickletDualButtonProxy(DeviceProxy):
     DEVICE_CLASS = BrickletDualButton
@@ -961,6 +995,18 @@ class BrickletMotionDetectorProxy(DeviceProxy):
     TOPIC_PREFIX = 'bricklet/motion_detector'
     GETTER_SPECS = [('get_motion_detected', None, 'motion_detected', 'motion')]
 
+class BrickletMotorizedLinearPotiProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletMotorizedLinearPoti
+    TOPIC_PREFIX = 'bricklet/motorized_linear_poti'
+    GETTER_SPECS = [('get_position', None, 'position', 'position'),
+                    ('get_motor_position', None, 'motor_position', None),
+                    ('get_status_led_config', None, 'status_led_config', ['config']),
+                    ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
+    SETTER_SPECS = [('set_motor_position', 'motor_position/set', ['position', 'drive_mode', 'hold_position']),
+                    ('calibrate', 'calibrate/set', []),
+                    ('set_status_led_config', 'status_led_config/set', ['config']),
+                    ('reset', 'reset/set', [])]
+
 class BrickletMultiTouchProxy(DeviceProxy):
     DEVICE_CLASS = BrickletMultiTouch
     TOPIC_PREFIX = 'bricklet/multi_touch'
@@ -1060,6 +1106,32 @@ class BrickletRGBLEDProxy(DeviceProxy):
     TOPIC_PREFIX = 'bricklet/rgb_led'
     GETTER_SPECS = [('get_rgb_value', None, 'rgb_value', None)]
     SETTER_SPECS = [('set_rgb_value', 'rgb_value/set', ['r', 'g', 'b'])]
+
+class BrickletRGBLEDButtonProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletRGBLEDButton
+    TOPIC_PREFIX = 'bricklet/rgb_led_button'
+    GETTER_SPECS = [('get_color', None, 'color', None),
+                    ('get_button_state', None, 'button_state', 'button_state'),
+                    ('get_color_calibration', None, 'color_calibration', None),
+                    ('get_status_led_config', None, 'status_led_config', 'config'),
+                    ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
+    SETTER_SPECS = [('set_color', 'color/set', ['red', 'green', 'blue']),
+                    ('set_color_calibration', 'color_calibration/set', ['red', 'green', 'blue']),
+                    ('set_status_led_config', 'status_led_config/set', 'config'),
+                    ('reset', 'reset/set', [])]
+
+    def cb_button_state_changed(self, button_state):
+        self.publish_values('button_state', button_state = button_state)
+
+    def setup_callbacks(self):
+        try:
+            button_state = self.device.get_button_state()
+            self.publish_values('button_state', button_state = button_state)
+        except:
+            pass
+
+        self.device.register_callback(BrickletRGBLEDButton.CALLBACK_BUTTON_STATE_CHANGED,
+                                      self.cb_button_state_changed)
 
 class BrickletRGBLEDMatrixProxy(DeviceProxy):
     DEVICE_CLASS = BrickletRGBLEDMatrix
@@ -1194,6 +1266,33 @@ class BrickletTemperatureIRProxy(DeviceProxy):
                     ('get_emissivity', None, 'emissivity', 'emissivity')]
     SETTER_SPECS = [('set_emissivity', 'emissivity/set', ['emissivity'])]
 
+class BrickletThermalImagingProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletThermalImaging
+    TOPIC_PREFIX = 'bricklet/thermal_imaging'
+    GETTER_SPECS = [('get_high_contrast_image', None, 'high_contrast_image', 'high_contrast_image'),
+                    ('get_temperature_image', None, 'temperature_image', 'temperature_image'),
+                    ('get_statistics', None, 'statistics', None),
+                    ('get_resolution', None, 'resolution', 'resolution'),
+                    ('get_spotmeter_config', None, 'spotmeter_config', 'spotmeter_config'),
+                    ('get_high_contrast_config', None, 'high_contrast_config', None),
+                    ('get_status_led_config', None, 'status_led_config', 'config'),
+                    ('get_chip_temperature', None, 'chip_temperature', 'temperature'),
+                    ('get_image_transfer_config', None, 'image_transfer_config', 'config')]
+    SETTER_SPECS = [('set_resolution', 'resolution/set', ['resolution']),
+                    ('set_spotmeter_config', 'spotmeter_config/set', ['region_of_interest']),
+                    ('set_high_contrast_config', 'high_contrast_config/set', ['region_of_interest', 'dampening_factor', 'clip_limit', 'empty_counts']),
+                    ('set_status_led_config', 'status_led_config/set', ['config']),
+                    ('reset', 'reset/set', []),
+                    ('set_image_transfer_config', 'image_transfer_config/set', ['config'])]
+
+class BrickletThermocoupleProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletThermocouple
+    TOPIC_PREFIX = 'bricklet/thermocouple'
+    GETTER_SPECS = [('get_temperature', 'temperature', 'temperature'),
+                    ('get_configuration', 'configuration', None),
+                    ('get_error_state', 'error_state', None)]
+    SETTER_SPECS = [('set_configuration', 'configuration/set', ['averaging', 'thermocouple_type', 'filter'])]
+
 # FIXME: handle tilt_state callback, including enable_tilt_state_callback, disable_tilt_state_callback and is_tilt_state_callback_enabled?
 class BrickletTiltProxy(DeviceProxy):
     DEVICE_CLASS = BrickletTilt
@@ -1221,79 +1320,6 @@ class BrickletVoltageCurrentProxy(DeviceProxy):
                     ('get_calibration', None, 'calibration', None)]
     SETTER_SPECS = [('set_configuration', 'configuration/set', ['averaging', 'voltage_conversion_time', 'current_conversion_time']),
                     ('set_calibration', 'calibration/set', ['gain_multiplier', 'gain_divisor'])]
-
-class BrickletRGBLEDButtonProxy(DeviceProxy):
-    DEVICE_CLASS = BrickletRGBLEDButton
-    TOPIC_PREFIX = 'bricklet/rgb_led_button'
-    GETTER_SPECS = [('get_color', None, 'color', None),
-                    ('get_button_state', None, 'button_state', 'button_state'),
-                    ('get_color_calibration', None, 'color_calibration', None),
-                    ('get_status_led_config', None, 'status_led_config', 'config'),
-                    ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
-    SETTER_SPECS = [('set_color', 'color/set', ['red', 'green', 'blue']),
-                    ('set_color_calibration', 'color_calibration/set', ['red', 'green', 'blue']),
-                    ('set_status_led_config', 'status_led_config/set', 'config'),
-                    ('reset', 'reset/set', [])]
-
-    def cb_button_state_changed(self, button_state):
-        self.publish_values('button_state', button_state = button_state)
-
-    def setup_callbacks(self):
-        try:
-            button_state = self.device.get_button_state()
-            self.publish_values('button_state', button_state = button_state)
-        except:
-            pass
-
-        self.device.register_callback(BrickletRGBLEDButton.CALLBACK_BUTTON_STATE_CHANGED,
-                                      self.cb_button_state_changed)
-
-class BrickletThermalImagingProxy(DeviceProxy):
-    DEVICE_CLASS = BrickletThermalImaging
-    TOPIC_PREFIX = 'bricklet/thermal_imaging'
-    GETTER_SPECS = [('get_high_contrast_image', None, 'high_contrast_image', 'high_contrast_image'),
-                    ('get_temperature_image', None, 'temperature_image', 'temperature_image'),
-                    ('get_statistics', None, 'statistics', None),
-                    ('get_resolution', None, 'resolution', 'resolution'),
-                    ('get_spotmeter_config', None, 'spotmeter_config', 'spotmeter_config'),
-                    ('get_high_contrast_config', None, 'high_contrast_config', None),
-                    ('get_status_led_config', None, 'status_led_config', 'config'),
-                    ('get_chip_temperature', None, 'chip_temperature', 'temperature'),
-                    ('get_image_transfer_config', None, 'image_transfer_config', 'config')]
-    SETTER_SPECS = [('set_resolution', 'resolution/set', ['resolution']),
-                    ('set_spotmeter_config', 'spotmeter_config/set', ['region_of_interest']),
-                    ('set_high_contrast_config', 'high_contrast_config/set', ['region_of_interest', 'dampening_factor', 'clip_limit', 'empty_counts']),
-                    ('set_status_led_config', 'status_led_config/set', ['config']),
-                    ('reset', 'reset/set', []),
-                    ('set_image_transfer_config', 'image_transfer_config/set', ['config'])]
-
-class BrickletMotorizedLinearPotiProxy(DeviceProxy):
-    DEVICE_CLASS = BrickletMotorizedLinearPoti
-    TOPIC_PREFIX = 'bricklet/motorized_linear_poti'
-    GETTER_SPECS = [('get_position', None, 'position', 'position'),
-                    ('get_motor_position', None, 'motor_position', None),
-                    ('get_status_led_config', None, 'status_led_config', ['config']),
-                    ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
-    SETTER_SPECS = [('set_motor_position', 'motor_position/set', ['position', 'drive_mode', 'hold_position']),
-                    ('calibrate', 'calibrate/set', []),
-                    ('set_status_led_config', 'status_led_config/set', ['config']),
-                    ('reset', 'reset/set', [])]
-
-class BrickletCANProxy(DeviceProxy):
-    DEVICE_CLASS = BrickletCAN
-    TOPIC_PREFIX = 'bricklet/can'
-    GETTER_SPECS = [('read_frame', None, 'read_frame', None),
-                    ('get_configuration', None, 'configuration', None),
-                    ('get_read_filter', None, 'read_filter', None),
-                    ('get_error_log', None, 'error_log', None)]
-    SETTER_SPECS = [(None, 'write_frame/set', ['frame_type', 'identifier', 'data', 'length'], {'getter_name': 'write_frame', 'getter_publish_topic':'write_frame', 'getter_return_value': 'success'}),
-                    ('set_configuration', 'configuration/set', ['baud_rate', 'transceiver_mode', 'write_timeout']),
-                    ('set_read_filter', 'read_filter/set', ['mode', 'mask', 'filter1', 'filter2'])]
-
-    # Arguments required for a getter must be published to "<GETTER-NAME>/set"
-    # topic which will execute the getter with the provided arguments.
-    # The output of the getter then will be published on the "<GETTER-NAME>"
-    # topic.
 
 class BrickDCProxy(DeviceProxy):
     DEVICE_CLASS = BrickDC
@@ -1584,31 +1610,6 @@ class BrickStepperProxy(DeviceProxy):
                     ('enable_status_led', 'enable_status_led/set', []),
                     ('disable_status_led', 'disable_status_led/set', []),
                     ('reset', 'reset/set', [])]
-
-class BrickletDMXProxy(DeviceProxy):
-    DEVICE_CLASS = BrickletDMX
-    TOPIC_PREFIX = 'bricklet/dmx'
-    GETTER_SPECS = [('get_dmx_mode', 'dmx_mode', 'dmx_mode'),
-                    ('read_frame', 'read_frame', None),
-                    ('get_frame_duration', 'frame_duration', 'frame_duration'),
-                    ('get_frame_error_count', 'frame_error_count', None),
-                    ('get_communication_led_config', 'communication_led_config', 'config'),
-                    ('get_error_led_config', 'error_led_config', 'config'),
-                    ('get_chip_temperature', 'chip_temperature', 'temperature')]
-    SETTER_SPECS = [('set_dmx_mode', 'dmx_mode/set', ['dmx_mode']),
-                    ('write_frame', 'write_frame/set', ['frame']),
-                    ('set_frame_duration', 'frame_duration/set', ['frame_duration']),
-                    ('set_communication_led_config', 'communication_led_config/set', ['config']),
-                    ('set_error_led_config', 'error_led_config/set', ['config']),
-                    ('reset', 'reset/set', [])]
-
-class BrickletThermocoupleProxy(DeviceProxy):
-    DEVICE_CLASS = BrickletThermocouple
-    TOPIC_PREFIX = 'bricklet/thermocouple'
-    GETTER_SPECS = [('get_temperature', 'temperature', 'temperature'),
-                    ('get_configuration', 'configuration', None),
-                    ('get_error_state', 'error_state', None)]
-    SETTER_SPECS = [('set_configuration', 'configuration/set', ['averaging', 'thermocouple_type', 'filter'])]
 
 class Proxy(object):
     def __init__(self, brickd_host, brickd_port, broker_host, broker_port,
