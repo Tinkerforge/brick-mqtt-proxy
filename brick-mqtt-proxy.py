@@ -553,7 +553,7 @@ class BrickletCANProxy(DeviceProxy):
                     ('get_configuration', None, 'configuration', None),
                     ('get_read_filter', None, 'read_filter', None),
                     ('get_error_log', None, 'error_log', None)]
-    SETTER_SPECS = [(None, 'write_frame/set', ['frame_type', 'identifier', 'data', 'length'], {'getter_name': 'write_frame', 'getter_publish_topic':'write_frame', 'getter_return_value': 'success'}),
+    SETTER_SPECS = [(None, 'write_frame/set', ['frame_type', 'identifier', 'data', 'length'], {'getter_name': 'write_frame', 'getter_publish_topic': 'write_frame', 'getter_return_value': 'success'}),
                     ('set_configuration', 'configuration/set', ['baud_rate', 'transceiver_mode', 'write_timeout']),
                     ('set_read_filter', 'read_filter/set', ['mode', 'mask', 'filter1', 'filter2'])]
 
@@ -695,7 +695,7 @@ class BrickletGPSV2Proxy(DeviceProxy):
                     ('get_sbas_config', None, 'sbas_config', 'sbas_config'),
                     ('get_status_led_config', None, 'status_led_config', 'config'),
                     ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
-    SETTER_SPECS = [(None, 'get_satellite_status/set', ['satellite_system', 'satellite_number'], {'getter_name': 'get_satellite_status', 'getter_publish_topic': 'get_satellite_status', 'getter_return_value': None}),
+    SETTER_SPECS = [(None, 'get_satellite_status/set', ['satellite_system', 'satellite_number'], {'getter_name': 'get_satellite_status', 'getter_publish_topic': 'satellite_status', 'getter_return_value': None}),
                     ('restart', 'restart/set', ['restart_type']),
                     ('set_fix_led_config', 'fix_led_config/set', ['config']),
                     ('set_sbas_config', 'sbas_config/set', ['sbas_config']),
@@ -1159,7 +1159,7 @@ class BrickletRotaryEncoderProxy(DeviceProxy):
     DEVICE_CLASS = BrickletRotaryEncoder
     TOPIC_PREFIX = 'bricklet/rotary_encoder'
     GETTER_SPECS = [('get_count', (False,), 'count', 'count')]
-    SETTER_SPECS = [(None, 'get_count/set', ['reset'], {'getter_name': 'get_count', 'getter_publish_topic':'get_count', 'getter_return_value': 'count'})]
+    SETTER_SPECS = [(None, 'get_count/set', ['reset'], {'getter_name': 'get_count', 'getter_publish_topic': 'count', 'getter_return_value': 'count'})]
 
     # Arguments required for a getter must be published to "<GETTER-NAME>/set"
     # topic which will execute the getter with the provided arguments.
@@ -1194,7 +1194,7 @@ class BrickletRS232Proxy(DeviceProxy):
     TOPIC_PREFIX = 'bricklet/rs232'
     GETTER_SPECS = [('read', None, 'read', None),
                     ('get_configuration', None, 'configuration', None)]
-    SETTER_SPECS = [(None, 'write/set', ['message'], {'getter_name': 'write', 'getter_publish_topic':'write', 'getter_return_value': 'written'}),
+    SETTER_SPECS = [(None, 'write/set', ['message'], {'getter_name': 'write', 'getter_publish_topic': 'write', 'getter_return_value': 'written'}),
                     ('set_configuration', 'configuration/set', ['baudrate', 'parity', 'stopbits', 'wordlength', 'hardware_flowcontrol', 'software_flowcontrol']),
                     ('set_break_condition', 'break_condition/set', ['break_time'])]
 
@@ -1217,8 +1217,8 @@ class BrickletRS485Proxy(DeviceProxy):
                     ('get_modbus_common_error_count', None, 'modbus_common_error_count', None),
                     ('get_status_led_config', None, 'status_led_config', 'config'),
                     ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
-    SETTER_SPECS = [(None, 'write/set', ['message'], {'getter_name': 'write', 'getter_publish_topic':'write', 'getter_return_value': 'written'}),
-                    (None, 'read/set', ['length'], {'getter_name': 'read', 'getter_publish_topic':'read', 'getter_return_value': 'message'}),
+    SETTER_SPECS = [(None, 'write/set', ['message'], {'getter_name': 'write', 'getter_publish_topic': 'write', 'getter_return_value': 'written'}),
+                    (None, 'read/set', ['length'], {'getter_name': 'read', 'getter_publish_topic': 'read', 'getter_return_value': 'message'}),
                     ('set_rs485_configuration', 'rs485_configuration/set', ['baudrate', 'parity', 'stopbits', 'wordlength', 'duplex']),
                     ('set_modbus_configuration', 'modbus_configuration/set', ['slave_address', 'master_request_timeout']),
                     ('set_mode', 'mode/set', ['mode']),
@@ -1373,7 +1373,7 @@ class BrickIMUProxy(DeviceProxy):
                     ('set_acceleration_range', 'acceleration_range/set', ['range']),
                     ('set_magnetometer_range', 'magnetometer_range/set', ['range']),
                     ('set_calibration', 'calibration/set', ['typ', 'data']),
-                    (None, 'get_calibration/set', ['typ'], {'getter_name': 'get_calibration', 'getter_publish_topic':'get_calibration', 'getter_return_value': 'data'}),
+                    (None, 'get_calibration/set', ['typ'], {'getter_name': 'get_calibration', 'getter_publish_topic': 'calibration', 'getter_return_value': 'data'}),
                     ('orientation_calculation_on', 'orientation_calculation_on/set', []),
                     ('orientation_calculation_off', 'orientation_calculation_off/set', []),
                     ('enable_status_led', 'enable_status_led/set', []),
@@ -1460,13 +1460,13 @@ class BrickMasterProxy(DeviceProxy):
     SETTER_SPECS = [('set_extension_type', 'extension_type/set', ['extension', 'exttype']),
                     ('set_rs485_address', 'rs485_address/set', ['address']),
                     ('set_rs485_slave_address', 'rs485_slave_address/set', ['num', 'address']),
-                    (None, 'get_rs485_slave_address/set', ['num'], {'getter_name': 'get_rs485_slave_address', 'getter_publish_topic': 'get_rs485_slave_address', 'getter_return_value': 'address'}),
+                    (None, 'get_rs485_slave_address/set', ['num'], {'getter_name': 'get_rs485_slave_address', 'getter_publish_topic': 'rs485_slave_address', 'getter_return_value': 'address'}),
                     ('set_rs485_configuration', 'rs485_configuration/set', ['speed', 'parity', 'stopbits']),
                     ('set_wifi_configuration', 'wifi_configuration/set', ['ssid', 'connection', 'ip', 'subnet_mask', 'gateway', 'port']),
                     ('set_wifi_encryption', 'wifi_encryption/set', ['encryption', 'key', 'key_index', 'eap_options', 'ca_certificate_length', 'client_certificate_length', 'private_key_length']),
                     ('refresh_wifi_status', 'refresh_wifi_status/set', []),
                     ('set_wifi_certificate', 'wifi_certificate/set', ['index', 'data', 'data_length']),
-                    (None, 'get_wifi_certificate/set', ['index'], {'getter_name': 'get_wifi_certificate', 'getter_publish_topic': 'get_wifi_certificate', 'getter_return_value': None}),
+                    (None, 'get_wifi_certificate/set', ['index'], {'getter_name': 'get_wifi_certificate', 'getter_publish_topic': 'wifi_certificate', 'getter_return_value': None}),
                     ('set_wifi_power_mode', 'wifi_power_mode/set', ['mode']),
                     ('set_wifi_regulatory_domain', 'wifi_regulatory_domain/set', ['domain']),
                     ('set_long_wifi_key', 'long_wifi_key/set', ['key']),
@@ -1505,20 +1505,20 @@ class BrickServoProxy(DeviceProxy):
                     ('disable', 'disable/set', ['servo_num']),
                     (None, 'is_enabled/set', ['servo_num'], {'getter_name': 'is_enabled', 'getter_publish_topic': 'is_enabled', 'getter_return_value': 'enabled'}),
                     ('set_position', 'position/set', ['servo_num', 'position']),
-                    (None, 'get_position/set', ['servo_num'], {'getter_name': 'get_position', 'getter_publish_topic': 'get_position', 'getter_return_value': 'position'}),
-                    (None, 'get_current_position/set', ['servo_num'], {'getter_name': 'get_current_position', 'getter_publish_topic': 'get_current_position', 'getter_return_value': 'position'}),
+                    (None, 'get_position/set', ['servo_num'], {'getter_name': 'get_position', 'getter_publish_topic': 'position', 'getter_return_value': 'position'}),
+                    (None, 'get_current_position/set', ['servo_num'], {'getter_name': 'get_current_position', 'getter_publish_topic': 'current_position', 'getter_return_value': 'position'}),
                     ('set_velocity', 'velocity/set', ['servo_num', 'velocity']),
-                    (None, 'get_velocity/set', ['servo_num'], {'getter_name': 'get_velocity', 'getter_publish_topic': 'get_velocity', 'getter_return_value': 'velocity'}),
+                    (None, 'get_velocity/set', ['servo_num'], {'getter_name': 'get_velocity', 'getter_publish_topic': 'velocity', 'getter_return_value': 'velocity'}),
                     ('set_acceleration', 'acceleration/set', ['servo_num', 'acceleration']),
-                    (None, 'get_acceleration/set', ['servo_num'], {'getter_name': 'get_acceleration', 'getter_publish_topic': 'get_acceleration', 'getter_return_value': 'acceleration'}),
+                    (None, 'get_acceleration/set', ['servo_num'], {'getter_name': 'get_acceleration', 'getter_publish_topic': 'acceleration', 'getter_return_value': 'acceleration'}),
                     ('set_output_voltage', 'output_voltage/set', ['voltage']),
                     ('set_pulse_width', 'pulse_width/set', ['servo_num', 'min', 'max']),
-                    (None, 'get_pulse_width/set', ['servo_num'], {'getter_name': 'get_pulse_width', 'getter_publish_topic': 'get_pulse_width', 'getter_return_value': None}),
+                    (None, 'get_pulse_width/set', ['servo_num'], {'getter_name': 'get_pulse_width', 'getter_publish_topic': 'pulse_width', 'getter_return_value': None}),
                     ('set_degree', 'degree/set', ['servo_num', 'min', 'max']),
-                    (None, 'get_degree/set', ['servo_num'], {'getter_name': 'get_degree', 'getter_publish_topic': 'get_degree', 'getter_return_value': None}),
+                    (None, 'get_degree/set', ['servo_num'], {'getter_name': 'get_degree', 'getter_publish_topic': 'degree', 'getter_return_value': None}),
                     ('set_period', 'period/set', ['servo_num', 'period']),
-                    (None, 'get_period/set', ['servo_num'], {'getter_name': 'get_period', 'getter_publish_topic': 'get_period', 'getter_return_value': 'period'}),
-                    (None, 'get_servo_current/set', ['servo_num'], {'getter_name': 'get_servo_current', 'getter_publish_topic': 'get_servo_current', 'getter_return_value': 'current'}),
+                    (None, 'get_period/set', ['servo_num'], {'getter_name': 'get_period', 'getter_publish_topic': 'period', 'getter_return_value': 'period'}),
+                    (None, 'get_servo_current/set', ['servo_num'], {'getter_name': 'get_servo_current', 'getter_publish_topic': 'servo_current', 'getter_return_value': 'current'}),
                     ('enable_status_led', 'enable_status_led/set', []),
                     ('disable_status_led', 'disable_status_led/set', []),
                     ('reset', 'reset/set', [])]
