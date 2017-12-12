@@ -3,6 +3,7 @@
 """
 Brick MQTT Proxy
 Copyright (C) 2015-2017 Matthias Bolte <matthias@tinkerforge.com>
+Copyright (C) 2017 Ishraq Ibne Ashraf <ishraq@tinkerforge.com>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -78,7 +79,7 @@ from tinkerforge.bricklet_load_cell import BrickletLoadCell
 from tinkerforge.bricklet_moisture import BrickletMoisture
 from tinkerforge.bricklet_motion_detector import BrickletMotionDetector
 from tinkerforge.bricklet_multi_touch import BrickletMultiTouch
-# FIXME: NFC/RFID Bricklet not handled yet
+from tinkerforge.bricklet_nfc_rfid import BrickletNFCRFID
 from tinkerforge.bricklet_oled_128x64 import BrickletOLED128x64
 from tinkerforge.bricklet_oled_64x48 import BrickletOLED64x48
 # FIXME: Piezo Buzzer Bricklet not handled yet
@@ -981,7 +982,16 @@ class BrickletMultiTouchProxy(DeviceProxy):
         self.device.register_callback(BrickletMultiTouch.CALLBACK_TOUCH_STATE,
                                       self.cb_touch_state)
 
-# FIXME: NFC/RFID Bricklet not handled yet
+class BrickletNFCRFIDProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletNFCRFID
+    TOPIC_PREFIX = 'bricklet/nfc_rfid'
+    GETTER_SPECS = [('get_tag_id', None, 'tag_id', None),
+                    ('get_state', None, 'state', None),
+                    ('get_page', None, 'page', 'page')]
+    SETTER_SPECS = [('request_tag_id', 'request_tag_id/set', ['tag_type']),
+                    ('authenticate_mifare_classic_page', 'authenticate_mifare_classic_page/set', ['page', 'key_number', 'key']),
+                    ('write_page', 'write_page/set', ['page', 'data']),
+                    ('request_page', 'request_page/set', ['page'])]
 
 class BrickletOLED128x64Proxy(DeviceProxy):
     DEVICE_CLASS = BrickletOLED128x64
