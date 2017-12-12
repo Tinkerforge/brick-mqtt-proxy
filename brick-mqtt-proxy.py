@@ -85,7 +85,7 @@ from tinkerforge.bricklet_multi_touch import BrickletMultiTouch
 from tinkerforge.bricklet_nfc_rfid import BrickletNFCRFID
 from tinkerforge.bricklet_oled_128x64 import BrickletOLED128x64
 from tinkerforge.bricklet_oled_64x48 import BrickletOLED64x48
-# FIXME: Piezo Buzzer Bricklet not handled yet
+from tinkerforge.bricklet_piezo_buzzer import BrickletPiezoBuzzer
 from tinkerforge.bricklet_piezo_speaker import BrickletPiezoSpeaker
 from tinkerforge.bricklet_ptc import BrickletPTC
 from tinkerforge.bricklet_real_time_clock import BrickletRealTimeClock
@@ -1059,7 +1059,11 @@ class BrickletOLED64x48Proxy(DeviceProxy):
                     ('write_line', 'write_line/set', ['line', 'position', 'text']),
                     ('set_display_configuration', 'display_configuration/set', ['contrast', 'invert'])]
 
-# FIXME: Piezo Buzzer Bricklet not handled yet
+class BrickletPiezoBuzzerProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletPiezoBuzzer
+    TOPIC_PREFIX = 'bricklet/piezo_buzzer'
+    SETTER_SPECS = [('beep', 'beep/set', ['duration']),
+                    ('morse_code', 'morse_code/set', ['morse'])]
 
 # FIXME: handle beep_finished and morse_code_finished callback?
 # FIXME: expose calibrate setter?
