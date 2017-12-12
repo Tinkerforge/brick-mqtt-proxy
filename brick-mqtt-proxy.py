@@ -113,6 +113,7 @@ from tinkerforge.brick_imu_v2 import BrickIMUV2
 from tinkerforge.brick_master import BrickMaster
 from tinkerforge.brick_servo import BrickServo
 from tinkerforge.brick_silent_stepper import BrickSilentStepper
+from tinkerforge.brick_stepper import BrickStepper
 
 class Getter(object):
     def __init__(self, proxy, getter_name, parameters, topic_suffix, result_name):
@@ -1530,6 +1531,48 @@ class BrickSilentStepperProxy(DeviceProxy):
                     ('set_coolstep_configuration', 'coolstep_configuration/set', ['minimum_stallguard_value', 'maximum_stallguard_value', 'current_up_step_width', 'current_down_step_width', 'minimum_current', 'stallguard_threshold_value', 'stallguard_mode']),
                     ('set_misc_configuration', 'misc_configuration/set', ['disable_short_to_ground_protection', 'synchronize_phase_frequency']),
                     ('set_time_base', 'time_base/set', ['time_base']),
+                    ('reset', 'reset/set', [])]
+
+class BrickStepperProxy(DeviceProxy):
+    DEVICE_CLASS = BrickStepper
+    TOPIC_PREFIX = 'brick/stepper'
+    GETTER_SPECS = [('get_max_velocity', None, 'max_velocity', 'velocity'),
+                    ('get_current_velocity', None, 'current_velocity', 'velocity'),
+                    ('get_speed_ramping', None, 'speed_ramping', None),
+                    ('get_steps', None, 'steps', 'steps'),
+                    ('get_remaining_steps', None, 'remaining_steps', 'remaining_steps'),
+                    ('get_motor_current', None, 'motor_current', 'current'),
+                    ('is_enabled', None, 'is_enabled', 'enabled'),
+                    ('get_current_position', None, 'current_position', 'position'),
+                    ('get_target_position', None, 'target_position', 'position'),
+                    ('get_step_mode', None, 'step_mode', 'mode'),
+                    ('get_stack_input_voltage', None, 'stack_input_voltage', 'voltage'),
+                    ('get_external_input_voltage', None, 'external_input_voltage', 'voltage'),
+                    ('get_current_consumption', None, 'current_consumption', 'current'),
+                    ('get_decay', None, 'decay', 'decay'),
+                    ('is_sync_rect', None, 'is_sync_rect', 'sync_rect'),
+                    ('get_time_base', None, 'time_base', 'time_base'),
+                    ('get_all_data', None, 'all_data', None),
+                    ('is_status_led_enabled', None, 'is_status_led_enabled', 'status_led_enabled'),
+                    ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
+    SETTER_SPECS = [('set_max_velocity', 'max_velocity/set', ['velocity']),
+                    ('set_speed_ramping', 'speed_ramping/set', ['acceleration', 'deacceleration']),
+                    ('full_brake', 'full_brake/set', []),
+                    ('set_steps', 'steps/set', ['steps']),
+                    ('drive_forward', 'drive_forward/set', []),
+                    ('drive_backward', 'drive_backward/set', []),
+                    ('stop', 'stop/set', []),
+                    ('set_motor_current', 'motor_current/set', ['current']),
+                    ('enable', 'enable/set', []),
+                    ('disable', 'disable/set', []),
+                    ('set_current_position', 'current_position/set', ['position']),
+                    ('set_target_position', 'target_position/set', ['position']),
+                    ('set_step_mode', 'step_mode/set', ['mode']),
+                    ('set_decay', 'decay/set', ['decay']),
+                    ('set_sync_rect', 'sync_rect/set', ['sync_rect']),
+                    ('set_time_base', 'time_base/set', ['time_base']),
+                    ('enable_status_led', 'enable_status_led/set', []),
+                    ('disable_status_led', 'disable_status_led/set', []),
                     ('reset', 'reset/set', [])]
 
 class BrickletDMXProxy(DeviceProxy):
