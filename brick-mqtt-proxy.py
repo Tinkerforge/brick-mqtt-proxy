@@ -518,6 +518,17 @@ class BrickIMUProxy(DeviceProxy):
                     ('get_imu_temperature', None, 'imu_temperature', 'temperature'),
                     ('get_acceleration_range', None, 'acceleration_range', 'range'),
                     ('get_magnetometer_range', None, 'magnetometer_range', 'range'),
+                    ('get_calibration',
+                     {
+                        'accelerometer_gain': (BrickIMU.CALIBRATION_TYPE_ACCELEROMETER_GAIN,),
+                        'accelerometer_bias': (BrickIMU.CALIBRATION_TYPE_ACCELEROMETER_BIAS,),
+                        'magnetometer_gain': (BrickIMU.CALIBRATION_TYPE_MAGNETOMETER_GAIN,),
+                        'magnetometer_bias': (BrickIMU.CALIBRATION_TYPE_MAGNETOMETER_BIAS,),
+                        'gyroscope_gain': (BrickIMU.CALIBRATION_TYPE_GYROSCOPE_GAIN,),
+                        'gyroscope_bias': (BrickIMU.CALIBRATION_TYPE_GYROSCOPE_BIAS,)
+                     },
+                     'calibration', 'data'
+                    ),
                     ('is_orientation_calculation_on', None, 'is_orientation_calculation_on', 'orientation_calculation_on'),
                     ('is_status_led_enabled', None, 'is_status_led_enabled', 'enabled'),
                     ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
@@ -527,17 +538,11 @@ class BrickIMUProxy(DeviceProxy):
                     ('set_acceleration_range', 'acceleration_range/set', ['range']),
                     ('set_magnetometer_range', 'magnetometer_range/set', ['range']),
                     ('set_calibration', 'calibration/set', ['typ', 'data']),
-                    (None, 'get_calibration/set', ['typ'], {'getter_name': 'get_calibration', 'getter_publish_topic': 'calibration', 'getter_return_value': 'data'}),
                     ('orientation_calculation_on', 'orientation_calculation_on/set', []),
                     ('orientation_calculation_off', 'orientation_calculation_off/set', []),
                     ('enable_status_led', 'enable_status_led/set', []),
                     ('disable_status_led', 'disable_status_led/set', []),
                     ('reset', 'reset/set', [])]
-
-    # Arguments required for a getter must be published to "<GETTER-NAME>/set"
-    # topic which will execute the getter with the provided arguments.
-    # The output of the getter then will be published on the "<GETTER-NAME>"
-    # topic.
 
 class BrickIMUV2Proxy(DeviceProxy):
     DEVICE_CLASS = BrickIMUV2
@@ -552,7 +557,6 @@ class BrickIMUV2Proxy(DeviceProxy):
                     ('get_magnetic_field', None, 'magnetic_field', None),
                     ('get_angular_velocity', None, 'angular_velocity', None),
                     ('get_temperature', None, 'temperature', 'temperature'),
-                    ('save_calibration', None, 'save_calibration', 'calibration_done'),
                     ('get_sensor_configuration', None, 'sensor_configuration', None),
                     ('get_sensor_fusion_mode', None, 'sensor_fusion_mode', 'mode'),
                     ('is_status_led_enabled', None, 'is_status_led_enabled', 'enabled'),
@@ -570,93 +574,139 @@ class BrickMasterProxy(DeviceProxy):
     TOPIC_PREFIX = 'brick/master'
     GETTER_SPECS = [('get_stack_voltage', None, 'stack_voltage', 'voltage'),
                     ('get_stack_current', None, 'stack_current', 'current'),
-                    ('is_rs485_present', None, 'is_rs485_present', 'present'),
-                    ('get_rs485_address', None, 'rs485_address', 'address'),
-                    ('get_rs485_error_log', None, 'rs485_error_log', 'crc_error'),
-                    ('get_rs485_configuration', None, 'rs485_configuration', None),
-                    ('is_wifi_present', None, 'is_wifi_present', 'present'),
-                    ('get_wifi_configuration', None, 'wifi_configuration', None),
-                    ('get_wifi_encryption', None, 'wifi_encryption', None),
-                    ('get_wifi_status', None, 'wifi_status', None),
-                    ('get_wifi_power_mode', None, 'wifi_power_mode', 'mode'),
-                    ('get_wifi_buffer_info', None, 'wifi_buffer_info', None),
-                    ('get_wifi_regulatory_domain', None, 'wifi_regulatory_domain', 'domain'),
                     ('get_usb_voltage', None, 'usb_voltage', 'voltage'),
-                    ('get_long_wifi_key', None, 'long_wifi_key', 'key'),
-                    ('get_wifi_hostname', None, 'wifi_hostname', 'hostname'),
-                    ('is_ethernet_present', None, 'is_ethernet_present', 'present'),
-                    ('get_ethernet_configuration', None, 'ethernet_configuration', None),
-                    ('get_ethernet_status', None, 'ethernet_status', None),
-                    ('get_ethernet_websocket_configuration', None, 'ethernet_websocket_configuration', None),
-                    ('get_ethernet_authentication_secret', None, 'ethernet_authentication_secret', 'secret'),
-                    ('get_wifi_authentication_secret', None, 'wifi_authentication_secret', 'secret'),
                     ('get_connection_type', None, 'connection_type', 'connection_type'),
-                    ('is_wifi2_present', None, 'is_wifi2_present', 'present'),
-                    ('get_wifi2_authentication_secret', None, 'wifi2_authentication_secret', 'secret'),
-                    ('get_wifi2_configuration', None, 'wifi2_configuration', None),
-                    ('get_wifi2_status', None, 'wifi2_status', None),
-                    ('get_wifi2_client_configuration', None, 'wifi2_client_configuration', None),
-                    ('get_wifi2_client_hostname', None, 'wifi2_client_hostname', 'hostname'),
-                    ('get_wifi2_client_password', None, 'wifi2_client_password', 'password'),
-                    ('get_wifi2_ap_configuration', None, 'wifi2_ap_configuration', None),
-                    ('get_wifi2_ap_password', None, 'wifi2_ap_password', 'password'),
-                    ('get_wifi2_firmware_version', None, 'wifi2_firmware_version', 'firmware_version'),
-                    ('is_wifi2_status_led_enabled', None, 'is_wifi2_status_led_enabled', 'enabled'),
-                    ('get_wifi2_mesh_configuration', None, 'wifi2_mesh_configuration', None),
-                    ('get_wifi2_mesh_router_ssid', None, 'wifi2_mesh_router_ssid', 'ssid'),
-                    ('get_wifi2_mesh_router_password', None, 'wifi2_mesh_router_password', 'password'),
-                    ('get_wifi2_mesh_common_status', None, 'wifi2_mesh_common_status', None),
-                    ('get_wifi2_mesh_client_status', None, 'wifi2_mesh_client_status', None),
-                    ('get_wifi2_mesh_ap_status', None, 'wifi2_mesh_ap_status', None),
                     ('is_status_led_enabled', None, 'is_status_led_enabled', 'enabled'),
                     ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
-    SETTER_SPECS = [('set_extension_type', 'extension_type/set', ['extension', 'exttype']),
-                    (None, 'get_extension_type/set', ['extension'], {'getter_name': 'get_extension_type', 'getter_publish_topic': 'extension_type', 'getter_return_value': 'exttype'}),
-                    ('set_rs485_address', 'rs485_address/set', ['address']),
-                    ('set_rs485_slave_address', 'rs485_slave_address/set', ['num', 'address']),
-                    (None, 'get_rs485_slave_address/set', ['num'], {'getter_name': 'get_rs485_slave_address', 'getter_publish_topic': 'rs485_slave_address', 'getter_return_value': 'address'}),
-                    ('set_rs485_configuration', 'rs485_configuration/set', ['speed', 'parity', 'stopbits']),
-                    ('set_wifi_configuration', 'wifi_configuration/set', ['ssid', 'connection', 'ip', 'subnet_mask', 'gateway', 'port']),
-                    ('set_wifi_encryption', 'wifi_encryption/set', ['encryption', 'key', 'key_index', 'eap_options', 'ca_certificate_length', 'client_certificate_length', 'private_key_length']),
-                    ('refresh_wifi_status', 'refresh_wifi_status/set', []),
-                    ('set_wifi_certificate', 'wifi_certificate/set', ['index', 'data', 'data_length']),
-                    (None, 'get_wifi_certificate/set', ['index'], {'getter_name': 'get_wifi_certificate', 'getter_publish_topic': 'wifi_certificate', 'getter_return_value': None}),
-                    ('set_wifi_power_mode', 'wifi_power_mode/set', ['mode']),
-                    ('set_wifi_regulatory_domain', 'wifi_regulatory_domain/set', ['domain']),
-                    ('set_long_wifi_key', 'long_wifi_key/set', ['key']),
-                    ('set_wifi_hostname', 'wifi_hostname/set', ['hostname']),
-                    ('set_ethernet_configuration', 'ethernet_configuration/set', ['connection', 'ip', 'subnet_mask', 'gateway', 'port']),
-                    ('set_ethernet_hostname', 'ethernet_hostname/set', ['hostname']),
-                    ('set_ethernet_mac_address', 'ethernet_mac_address/set', ['mac_address']),
-                    ('set_ethernet_websocket_configuration', 'ethernet_websocket_configuration/set', ['sockets', 'port']),
-                    ('set_ethernet_authentication_secret', 'ethernet_authentication_secret/set', ['secret']),
-                    ('set_wifi_authentication_secret', 'wifi_authentication_secret/set', ['secret']),
-                    ('set_wifi2_authentication_secret', 'wifi2_authentication_secret/set', ['secret']),
-                    ('set_wifi2_configuration', 'wifi2_configuration/set', ['port', 'websocket_port', 'website_port', 'phy_mode', 'sleep_mode', 'website']),
-                    ('set_wifi2_client_configuration', 'wifi2_client_configuration/set', ['enable', 'ssid', 'ip', 'subnet_mask', 'gateway', 'mac_address', 'bssid']),
-                    ('set_wifi2_client_hostname', 'wifi2_client_hostname/set', ['hostname']),
-                    ('set_wifi2_client_password', 'wifi2_client_password/set', ['password']),
-                    ('set_wifi2_ap_configuration', 'wifi2_ap_configuration/set', ['enable', 'ssid', 'ip', 'subnet_mask', 'gateway', 'encryption', 'hidden', 'channel', 'mac_address']),
-                    ('set_wifi2_ap_password', 'wifi2_ap_password/set', ['password']),
-                    (None, 'save_wifi2_configuration/set', [], {'getter_name': 'save_wifi2_configuration', 'getter_publish_topic': 'save_wifi2_configuration', 'getter_return_value': 'result'}),
-                    ('enable_wifi2_status_led', 'enable_wifi2_status_led/set', []),
-                    ('disable_wifi2_status_led', 'disable_wifi2_status_led/set', []),
-                    ('set_wifi2_mesh_configuration', 'wifi2_mesh_configuration/set', ['enable', 'root_ip', 'root_subnet_mask', 'root_gateway', 'router_bssid', 'group_id', 'group_ssid_prefix', 'gateway_ip', 'gateway_port']),
-                    ('set_wifi2_mesh_router_ssid', 'wifi2_mesh_router_ssid/set', ['ssid']),
-                    ('set_wifi2_mesh_router_password', 'wifi2_mesh_router_password/set', ['password']),
-                    ('enable_status_led', 'enable_status_led/set', []),
+    SETTER_SPECS = [('enable_status_led', 'enable_status_led/set', []),
                     ('disable_status_led', 'disable_status_led/set', []),
                     ('reset', 'reset/set', [])]
-
-    # Arguments required for a getter must be published to "<GETTER-NAME>/set"
-    # topic which will execute the getter with the provided arguments.
-    # The output of the getter then will be published on the "<GETTER-NAME>"
-    # topic.
 
 class BrickServoProxy(DeviceProxy):
     DEVICE_CLASS = BrickServo
     TOPIC_PREFIX = 'brick/servo'
-    GETTER_SPECS = [('get_output_voltage', None, 'output_voltage', 'voltage'),
+    GETTER_SPECS = [
+                    ('is_enabled',
+                     {
+                        '0': (0,),
+                        '1': (1,),
+                        '2': (2,),
+                        '3': (3,),
+                        '4': (4,),
+                        '5': (5,),
+                        '6': (6,)
+                     },
+                     'is_enabled', 'enabled'
+                    ),
+                    ('get_position',
+                     {
+                        '0': (0,),
+                        '1': (1,),
+                        '2': (2,),
+                        '3': (3,),
+                        '4': (4,),
+                        '5': (5,),
+                        '6': (6,)
+                     },
+                     'position', 'position'
+                    ),
+                    ('get_current_position',
+                     {
+                        '0': (0,),
+                        '1': (1,),
+                        '2': (2,),
+                        '3': (3,),
+                        '4': (4,),
+                        '5': (5,),
+                        '6': (6,)
+                     },
+                     'current_position', 'position'
+                    ),
+                    ('get_velocity',
+                     {
+                        '0': (0,),
+                        '1': (1,),
+                        '2': (2,),
+                        '3': (3,),
+                        '4': (4,),
+                        '5': (5,),
+                        '6': (6,)
+                     },
+                     'velocity', 'velocity'
+                    ),
+                    ('get_current_velocity',
+                     {
+                        '0': (0,),
+                        '1': (1,),
+                        '2': (2,),
+                        '3': (3,),
+                        '4': (4,),
+                        '5': (5,),
+                        '6': (6,)
+                     },
+                     'current_velocity', 'velocity'
+                    ),
+                    ('get_acceleration',
+                     {
+                        '0': (0,),
+                        '1': (1,),
+                        '2': (2,),
+                        '3': (3,),
+                        '4': (4,),
+                        '5': (5,),
+                        '6': (6,)
+                     },
+                     'acceleration', 'acceleration'
+                    ),
+                    ('get_output_voltage', None, 'output_voltage', 'voltage'),
+                    ('get_pulse_width',
+                     {
+                        '0': (0,),
+                        '1': (1,),
+                        '2': (2,),
+                        '3': (3,),
+                        '4': (4,),
+                        '5': (5,),
+                        '6': (6,)
+                     },
+                     'pulse_width', None
+                    ),
+                    ('get_degree',
+                     {
+                        '0': (0,),
+                        '1': (1,),
+                        '2': (2,),
+                        '3': (3,),
+                        '4': (4,),
+                        '5': (5,),
+                        '6': (6,)
+                     },
+                     'degree', None
+                    ),
+                    ('get_period',
+                     {
+                        '0': (0,),
+                        '1': (1,),
+                        '2': (2,),
+                        '3': (3,),
+                        '4': (4,),
+                        '5': (5,),
+                        '6': (6,)
+                     },
+                     'period', 'period'
+                    ),
+                    ('get_servo_current',
+                     {
+                        '0': (0,),
+                        '1': (1,),
+                        '2': (2,),
+                        '3': (3,),
+                        '4': (4,),
+                        '5': (5,),
+                        '6': (6,)
+                     },
+                     'current', 'current'
+                    ),
                     ('get_overall_current', None, 'overall_current', 'current'),
                     ('get_stack_input_voltage', None, 'stack_input_voltage', 'voltage'),
                     ('get_external_input_voltage', None, 'external_input_voltage', 'voltage'),
@@ -664,31 +714,16 @@ class BrickServoProxy(DeviceProxy):
                     ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
     SETTER_SPECS = [('enable', 'enable/set', ['servo_num']),
                     ('disable', 'disable/set', ['servo_num']),
-                    (None, 'is_enabled/set', ['servo_num'], {'getter_name': 'is_enabled', 'getter_publish_topic': 'is_enabled', 'getter_return_value': 'enabled'}),
                     ('set_position', 'position/set', ['servo_num', 'position']),
-                    (None, 'get_position/set', ['servo_num'], {'getter_name': 'get_position', 'getter_publish_topic': 'position', 'getter_return_value': 'position'}),
-                    (None, 'get_current_position/set', ['servo_num'], {'getter_name': 'get_current_position', 'getter_publish_topic': 'current_position', 'getter_return_value': 'position'}),
                     ('set_velocity', 'velocity/set', ['servo_num', 'velocity']),
-                    (None, 'get_velocity/set', ['servo_num'], {'getter_name': 'get_velocity', 'getter_publish_topic': 'velocity', 'getter_return_value': 'velocity'}),
-                    (None, 'get_current_velocity/set', ['servo_num'], {'getter_name': 'get_current_velocity', 'getter_publish_topic': 'velocity', 'getter_return_value': 'velocity'}),
                     ('set_acceleration', 'acceleration/set', ['servo_num', 'acceleration']),
-                    (None, 'get_acceleration/set', ['servo_num'], {'getter_name': 'get_acceleration', 'getter_publish_topic': 'acceleration', 'getter_return_value': 'acceleration'}),
                     ('set_output_voltage', 'output_voltage/set', ['voltage']),
                     ('set_pulse_width', 'pulse_width/set', ['servo_num', 'min', 'max']),
-                    (None, 'get_pulse_width/set', ['servo_num'], {'getter_name': 'get_pulse_width', 'getter_publish_topic': 'pulse_width', 'getter_return_value': None}),
                     ('set_degree', 'degree/set', ['servo_num', 'min', 'max']),
-                    (None, 'get_degree/set', ['servo_num'], {'getter_name': 'get_degree', 'getter_publish_topic': 'degree', 'getter_return_value': None}),
                     ('set_period', 'period/set', ['servo_num', 'period']),
-                    (None, 'get_period/set', ['servo_num'], {'getter_name': 'get_period', 'getter_publish_topic': 'period', 'getter_return_value': 'period'}),
-                    (None, 'get_servo_current/set', ['servo_num'], {'getter_name': 'get_servo_current', 'getter_publish_topic': 'servo_current', 'getter_return_value': 'current'}),
                     ('enable_status_led', 'enable_status_led/set', []),
                     ('disable_status_led', 'disable_status_led/set', []),
                     ('reset', 'reset/set', [])]
-
-    # Arguments required for a getter must be published to "<GETTER-NAME>/set"
-    # topic which will execute the getter with the provided arguments.
-    # The output of the getter then will be published on the "<GETTER-NAME>"
-    # topic.
 
 class BrickSilentStepperProxy(DeviceProxy):
     DEVICE_CLASS = BrickSilentStepper
