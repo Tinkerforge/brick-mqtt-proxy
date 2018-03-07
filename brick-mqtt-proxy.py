@@ -54,6 +54,7 @@ from tinkerforge.bricklet_analog_in import BrickletAnalogIn
 from tinkerforge.bricklet_analog_in_v2 import BrickletAnalogInV2
 from tinkerforge.bricklet_analog_out import BrickletAnalogOut
 from tinkerforge.bricklet_analog_out_v2 import BrickletAnalogOutV2
+from tinkerforge.bricklet_analog_in_v3 import BrickletAnalogInV3
 from tinkerforge.bricklet_barometer import BrickletBarometer
 from tinkerforge.bricklet_can import BrickletCAN
 from tinkerforge.bricklet_co2 import BrickletCO2
@@ -89,6 +90,7 @@ from tinkerforge.bricklet_linear_poti import BrickletLinearPoti
 from tinkerforge.bricklet_load_cell import BrickletLoadCell
 from tinkerforge.bricklet_moisture import BrickletMoisture
 from tinkerforge.bricklet_motion_detector import BrickletMotionDetector
+from tinkerforge.bricklet_motion_detector_v2 import BrickletMotionDetectorV2
 from tinkerforge.bricklet_motorized_linear_poti import BrickletMotorizedLinearPoti
 from tinkerforge.bricklet_multi_touch import BrickletMultiTouch
 from tinkerforge.bricklet_nfc_rfid import BrickletNFCRFID
@@ -96,21 +98,26 @@ from tinkerforge.bricklet_oled_128x64 import BrickletOLED128x64
 from tinkerforge.bricklet_oled_64x48 import BrickletOLED64x48
 from tinkerforge.bricklet_piezo_buzzer import BrickletPiezoBuzzer
 from tinkerforge.bricklet_piezo_speaker import BrickletPiezoSpeaker
+from tinkerforge.bricklet_outdoor_weather import BrickletOutdoorWeather
 from tinkerforge.bricklet_ptc import BrickletPTC
 from tinkerforge.bricklet_real_time_clock import BrickletRealTimeClock
 from tinkerforge.bricklet_remote_switch import BrickletRemoteSwitch
+from tinkerforge.bricklet_remote_switch_v2 import BrickletRemoteSwitchV2
 from tinkerforge.bricklet_rgb_led import BrickletRGBLED
 from tinkerforge.bricklet_rgb_led_button import BrickletRGBLEDButton
 from tinkerforge.bricklet_rgb_led_matrix import BrickletRGBLEDMatrix
 from tinkerforge.bricklet_rotary_encoder import BrickletRotaryEncoder
+from tinkerforge.bricklet_rotary_encoder_v2 import BrickletRotaryEncoderV2
 from tinkerforge.bricklet_rotary_poti import BrickletRotaryPoti
 from tinkerforge.bricklet_rs232 import BrickletRS232
 from tinkerforge.bricklet_rs485 import BrickletRS485
 from tinkerforge.bricklet_segment_display_4x7 import BrickletSegmentDisplay4x7
 from tinkerforge.bricklet_solid_state_relay import BrickletSolidStateRelay
+from tinkerforge.bricklet_solid_state_relay_v2 import BrickletSolidStateRelayV2
 from tinkerforge.bricklet_sound_intensity import BrickletSoundIntensity
 from tinkerforge.bricklet_temperature import BrickletTemperature
 from tinkerforge.bricklet_temperature_ir import BrickletTemperatureIR
+from tinkerforge.bricklet_temperature_ir_v2 import BrickletTemperatureIRV2
 from tinkerforge.bricklet_thermal_imaging import BrickletThermalImaging
 from tinkerforge.bricklet_thermocouple import BrickletThermocouple
 from tinkerforge.bricklet_tilt import BrickletTilt
@@ -872,6 +879,11 @@ class BrickletAnalogOutV2Proxy(DeviceProxy):
                     ('get_input_voltage', None, 'input_voltage', 'voltage')]
     SETTER_SPECS = [('set_output_voltage', 'output_voltage/set', ['voltage'])]
 
+class BrickletAnalogInV3Proxy(DeviceProxy):
+    DEVICE_CLASS = BrickletAnalogInV3
+    TOPIC_PREFIX = 'bricklet/analog_in_v3'
+    GETTER_SPECS = [('get_voltage', None, 'voltage', 'voltage')]
+
 class BrickletBarometerProxy(DeviceProxy):
     DEVICE_CLASS = BrickletBarometer
     TOPIC_PREFIX = 'bricklet/barometer'
@@ -1334,6 +1346,11 @@ class BrickletMotionDetectorProxy(DeviceProxy):
     TOPIC_PREFIX = 'bricklet/motion_detector'
     GETTER_SPECS = [('get_motion_detected', None, 'motion_detected', 'motion')]
 
+class BrickletMotionDetectorV2Proxy(DeviceProxy):
+    DEVICE_CLASS = BrickletMotionDetectorV2
+    TOPIC_PREFIX = 'bricklet/motion_detector_v2'
+    GETTER_SPECS = [('get_motion_detected', None, 'motion_detected', 'motion')]
+
 class BrickletMotorizedLinearPotiProxy(DeviceProxy):
     DEVICE_CLASS = BrickletMotorizedLinearPoti
     TOPIC_PREFIX = 'bricklet/motorized_linear_poti'
@@ -1412,6 +1429,19 @@ class BrickletPiezoSpeakerProxy(DeviceProxy):
     SETTER_SPECS = [('beep', 'beep/set', ['duration', 'frequency']),
                     ('morse_code', 'morse_code/set', ['morse', 'frequency'])]
 
+class BrickletOutdoorWeatherProxy(DeviceProxy):
+    DEVICE_CLASS = BrickletOutdoorWeather
+    TOPIC_PREFIX = 'bricklet/outdoor_weather'
+    GETTER_SPECS = [('get_station_identifiers', None, 'station_identifiers', 'station_identifiers'),
+                    ('get_sensor_identifiers', None, 'sensor_identifiers', 'sensor_identifiers')]
+    SETTER_SPECS = [(None, 'get_station_data/set', ['identifier'], {'getter_name': 'get_station_data', 'getter_publish_topic': 'station_data', 'getter_return_value': 'station_data'}),
+                    (None, 'get_sensor_data/set', ['identifier'], {'getter_name': 'get_sensor_data', 'getter_publish_topic': 'sensor_data', 'getter_return_value': 'sensor_data'})]
+
+    # Arguments required for a getter must be published to "<GETTER-NAME>/set"
+    # topic which will execute the getter with the provided arguments.
+    # The output of the getter then will be published on the "<GETTER-NAME>"
+    # topic.
+
 class BrickletPTCProxy(DeviceProxy):
     DEVICE_CLASS = BrickletPTC
     TOPIC_PREFIX = 'bricklet/ptc'
@@ -1436,6 +1466,17 @@ class BrickletRealTimeClockProxy(DeviceProxy):
 class BrickletRemoteSwitchProxy(DeviceProxy):
     DEVICE_CLASS = BrickletRemoteSwitch
     TOPIC_PREFIX = 'bricklet/remote_switch'
+    GETTER_SPECS = [('get_switching_state', None, 'switching_state', 'state'),
+                    ('get_repeats', None, 'repeats', 'repeats')]
+    SETTER_SPECS = [('switch_socket_a', 'switch_socket_a/set', ['house_code', 'receiver_code', 'switch_to']),
+                    ('switch_socket_b', 'switch_socket_b/set', ['address', 'unit', 'switch_to']),
+                    ('dim_socket_b', 'dim_socket_b/set', ['address', 'unit', 'dim_value']),
+                    ('switch_socket_c', 'switch_socket_c/set', ['system_code', 'device_code', 'switch_to']),
+                    ('set_repeats', 'repeats/set', ['repeats'])]
+
+class BrickletRemoteSwitchV2Proxy(DeviceProxy):
+    DEVICE_CLASS = BrickletRemoteSwitchV2
+    TOPIC_PREFIX = 'bricklet/remote_switch_v2'
     GETTER_SPECS = [('get_switching_state', None, 'switching_state', 'state'),
                     ('get_repeats', None, 'repeats', 'repeats')]
     SETTER_SPECS = [('switch_socket_a', 'switch_socket_a/set', ['house_code', 'receiver_code', 'switch_to']),
@@ -1522,6 +1563,34 @@ class BrickletRotaryEncoderProxy(DeviceProxy):
         self.device.register_callback(BrickletRotaryEncoder.CALLBACK_RELEASED,
                                       self.cb_released)
 
+class BrickletRotaryEncoderV2Proxy(DeviceProxy):
+    DEVICE_CLASS = BrickletRotaryEncoderV2
+    TOPIC_PREFIX = 'bricklet/rotary_encoder_v2'
+    GETTER_SPECS = [('get_count', (False,), 'count', 'count')]
+    SETTER_SPECS = [(None, 'get_count/set', ['reset'], {'getter_name': 'get_count', 'getter_publish_topic': 'count', 'getter_return_value': 'count'})]
+
+    # Arguments required for a getter must be published to "<GETTER-NAME>/set"
+    # topic which will execute the getter with the provided arguments.
+    # The output of the getter then will be published on the "<GETTER-NAME>"
+    # topic.
+
+    def cb_pressed(self):
+        self.publish_values('pressed', pressed=True)
+
+    def cb_released(self):
+        self.publish_values('pressed', pressed=False)
+
+    def setup_callbacks(self):
+        try:
+            self.publish_values('pressed', pressed=self.device.is_pressed())
+        except:
+            pass
+
+        self.device.register_callback(BrickletRotaryEncoderV2.CALLBACK_PRESSED,
+                                      self.cb_pressed)
+        self.device.register_callback(BrickletRotaryEncoderV2.CALLBACK_RELEASED,
+                                      self.cb_released)
+
 # FIXME: expose analog_value getter?
 class BrickletRotaryPotiProxy(DeviceProxy):
     DEVICE_CLASS = BrickletRotaryPoti
@@ -1589,6 +1658,14 @@ class BrickletSolidStateRelayProxy(DeviceProxy):
     SETTER_SPECS = [('set_state', 'state/set', ['state']),
                     ('set_monoflop', 'monoflop/set', ['state', 'time'])]
 
+class BrickletSolidStateRelayV2Proxy(DeviceProxy):
+    DEVICE_CLASS = BrickletSolidStateRelayV2
+    TOPIC_PREFIX = 'bricklet/solid_state_relay_v2'
+    GETTER_SPECS = [('get_state', None, 'state', 'state'),
+                    ('get_monoflop', None, 'monoflop', None)]
+    SETTER_SPECS = [('set_state', 'state/set', ['state']),
+                    ('set_monoflop', 'monoflop/set', ['state', 'time'])]
+
 class BrickletSoundIntensityProxy(DeviceProxy):
     DEVICE_CLASS = BrickletSoundIntensity
     TOPIC_PREFIX = 'bricklet/sound_intensity'
@@ -1603,6 +1680,15 @@ class BrickletTemperatureProxy(DeviceProxy):
 
 class BrickletTemperatureIRProxy(DeviceProxy):
     DEVICE_CLASS = BrickletTemperatureIR
+    TOPIC_PREFIX = 'bricklet/temperature_ir'
+    GETTER_SPECS = [('get_ambient_temperature', None, 'ambient_temperature', 'temperature'),
+                    ('get_object_temperature', None, 'object_temperature', 'temperature'),
+                    ('get_emissivity', None, 'emissivity', 'emissivity')]
+    SETTER_SPECS = [('set_emissivity', 'emissivity/set', ['emissivity'])]
+
+
+class BrickletTemperatureIRV2Proxy(DeviceProxy):
+    DEVICE_CLASS = BrickletTemperatureIRV2
     TOPIC_PREFIX = 'bricklet/temperature_ir'
     GETTER_SPECS = [('get_ambient_temperature', None, 'ambient_temperature', 'temperature'),
                     ('get_object_temperature', None, 'object_temperature', 'temperature'),
