@@ -1046,17 +1046,34 @@ class BrickletGPSV2Proxy(DeviceProxy):
                     ('get_sbas_config', None, 'sbas_config', 'sbas_config'),
                     ('get_status_led_config', None, 'status_led_config', 'config'),
                     ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
-    SETTER_SPECS = [(None, 'get_satellite_status/set', ['satellite_system', 'satellite_number'], {'getter_name': 'get_satellite_status', 'getter_publish_topic': 'satellite_status', 'getter_return_value': None}),
-                    ('restart', 'restart/set', ['restart_type']),
+    SETTER_SPECS = [('restart', 'restart/set', ['restart_type']),
                     ('set_fix_led_config', 'fix_led_config/set', ['config']),
                     ('set_sbas_config', 'sbas_config/set', ['sbas_config']),
                     ('set_status_led_config', 'status_led_config/set', ['config']),
                     ('reset', 'reset/set', [])]
 
-    # Arguments required for a getter must be published to "<GETTER-NAME>/set"
-    # topic which will execute the getter with the provided arguments.
-    # The output of the getter then will be published on the "<GETTER-NAME>"
-    # topic.
+    def update_extra_getters(self):
+        result = [[None] * 32] * 3
+
+        for i, system in enumerate([BrickletGPSV2.SATELLITE_SYSTEM_GPS, BrickletGPSV2.SATELLITE_SYSTEM_GLONASS, BrickletGPSV2.SATELLITE_SYSTEM_GALILEO]):
+            for k in range(32):
+                try:
+                    status = self.device.get_satellite_status(system, k + 1)
+                except:
+                    continue
+
+                result[i][k] = {}
+
+                for field in status._fields:
+                    result[i][k][field] = getattr(status, field)
+
+        payload = {
+            'gps': result[0],
+            'glonass': result[1],
+            'galileo': result[2]
+        }
+
+        self.publish_values('satellite_status', **payload)
 
 # FIXME: get_edge_count needs special handling
 class BrickletHallEffectProxy(DeviceProxy):
