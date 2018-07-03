@@ -1432,15 +1432,41 @@ class BrickletPiezoSpeakerProxy(DeviceProxy):
 class BrickletOutdoorWeatherProxy(DeviceProxy):
     DEVICE_CLASS = BrickletOutdoorWeather
     TOPIC_PREFIX = 'bricklet/outdoor_weather'
-    GETTER_SPECS = [('get_station_identifiers', None, 'station_identifiers', 'station_identifiers'),
-                    ('get_sensor_identifiers', None, 'sensor_identifiers', 'sensor_identifiers')]
-    SETTER_SPECS = [(None, 'get_station_data/set', ['identifier'], {'getter_name': 'get_station_data', 'getter_publish_topic': 'station_data', 'getter_return_value': 'station_data'}),
-                    (None, 'get_sensor_data/set', ['identifier'], {'getter_name': 'get_sensor_data', 'getter_publish_topic': 'sensor_data', 'getter_return_value': 'sensor_data'})]
 
-    # Arguments required for a getter must be published to "<GETTER-NAME>/set"
-    # topic which will execute the getter with the provided arguments.
-    # The output of the getter then will be published on the "<GETTER-NAME>"
-    # topic.
+    def update_extra_getters(self):
+        # stations
+        try:
+            identifiers = self.device.get_station_identifiers()
+        except:
+            identifiers = []
+
+        payload = {}
+
+        for identifier in identifiers:
+            data = self.device.get_station_data(identifier)
+            payload[str(identifier)] = {}
+
+            for field in data._fields:
+                payload[str(identifier)][field] = getattr(data, field)
+
+        self.publish_values('station_data', **payload)
+
+        # sensors
+        try:
+            identifiers = self.device.get_sensor_identifiers()
+        except:
+            identifiers = []
+
+        payload = {}
+
+        for identifier in identifiers:
+            data = self.device.get_sensor_data(identifier)
+            payload[str(identifier)] = {}
+
+            for field in data._fields:
+                payload[str(identifier)][field] = getattr(data, field)
+
+        self.publish_values('sensor_data', **payload)
 
 class BrickletPTCProxy(DeviceProxy):
     DEVICE_CLASS = BrickletPTC
