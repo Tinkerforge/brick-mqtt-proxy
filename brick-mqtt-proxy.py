@@ -492,13 +492,13 @@ class BrickDCProxy(DeviceProxy):
     GETTER_SPECS = [('get_velocity', None, 'velocity', 'velocity'),
                     ('get_current_velocity', None, 'current_velocity', 'velocity'),
                     ('get_acceleration', None, 'acceleration', 'acceleration'),
-                    ('is_enabled', None, 'is_enabled', 'enabled'),
+                    ('is_enabled', None, 'enabled', 'enabled'),
                     ('get_pwm_frequency', None, 'pwm_frequency', 'frequency'),
                     ('get_stack_input_voltage', None, 'stack_input_voltage', 'voltage'),
                     ('get_external_input_voltage', None, 'external_input_voltage', 'voltage'),
                     ('get_current_consumption', None, 'current_consumption', 'current'),
                     ('get_drive_mode', None, 'drive_mode', 'mode'),
-                    ('is_status_led_enabled', None, 'is_status_led_enabled', 'enabled'),
+                    ('is_status_led_enabled', None, 'status_led_enabled', 'enabled'),
                     ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
     SETTER_SPECS = [('set_velocity', 'velocity/set', ['velocity']),
                     ('set_acceleration', 'acceleration/set', ['acceleration']),
@@ -516,7 +516,7 @@ class BrickIMUProxy(DeviceProxy):
     TOPIC_PREFIX = 'brick/imu'
     GETTER_SPECS = [('get_orientation', None, 'orientation', None),
                     ('get_quaternion', None, 'quaternion', None),
-                    ('are_leds_on', None, 'are_leds_on', 'leds_on'),
+                    ('are_leds_on', None, 'leds_on', 'leds_on'),
                     ('get_convergence_speed', None, 'convergence_speed', 'speed'),
                     ('get_acceleration', None, 'acceleration', None),
                     ('get_magnetic_field', None, 'magnetic_field', None),
@@ -536,8 +536,8 @@ class BrickIMUProxy(DeviceProxy):
                      },
                      'calibration', 'data'
                     ),
-                    ('is_orientation_calculation_on', None, 'is_orientation_calculation_on', 'orientation_calculation_on'),
-                    ('is_status_led_enabled', None, 'is_status_led_enabled', 'enabled'),
+                    ('is_orientation_calculation_on', None, 'orientation_calculation_on', 'orientation_calculation_on'),
+                    ('is_status_led_enabled', None, 'status_led_enabled', 'enabled'),
                     ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
     SETTER_SPECS = [('leds_on', 'leds_on/set', []),
                     ('leds_off', 'leds_off/set', []),
@@ -559,14 +559,14 @@ class BrickIMUV2Proxy(DeviceProxy):
                     ('get_gravity_vector', None, 'gravity_vector', None),
                     ('get_quaternion', None, 'quaternion', None),
                     ('get_all_data', None, 'all_data', None),
-                    ('are_leds_on', None, 'are_leds_on', 'leds'),
+                    ('are_leds_on', None, 'leds_on', 'leds'),
                     ('get_acceleration', None, 'acceleration', None),
                     ('get_magnetic_field', None, 'magnetic_field', None),
                     ('get_angular_velocity', None, 'angular_velocity', None),
                     ('get_temperature', None, 'temperature', 'temperature'),
                     ('get_sensor_configuration', None, 'sensor_configuration', None),
                     ('get_sensor_fusion_mode', None, 'sensor_fusion_mode', 'mode'),
-                    ('is_status_led_enabled', None, 'is_status_led_enabled', 'enabled'),
+                    ('is_status_led_enabled', None, 'status_led_enabled', 'enabled'),
                     ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
     SETTER_SPECS = [('leds_on', 'leds_on/set', []),
                     ('leds_off', 'leds_off/set', []),
@@ -583,7 +583,7 @@ class BrickMasterProxy(DeviceProxy):
                     ('get_stack_current', None, 'stack_current', 'current'),
                     ('get_usb_voltage', None, 'usb_voltage', 'voltage'),
                     ('get_connection_type', None, 'connection_type', 'connection_type'),
-                    ('is_status_led_enabled', None, 'is_status_led_enabled', 'enabled'),
+                    ('is_status_led_enabled', None, 'status_led_enabled', 'enabled'),
                     ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
     SETTER_SPECS = [('enable_status_led', 'enable_status_led/set', []),
                     ('disable_status_led', 'disable_status_led/set', []),
@@ -603,7 +603,7 @@ class BrickServoProxy(DeviceProxy):
                         '5': (5,),
                         '6': (6,)
                      },
-                     'is_enabled', 'enabled'
+                     'enabled', 'enabled'
                     ),
                     ('get_position',
                      {
@@ -717,7 +717,7 @@ class BrickServoProxy(DeviceProxy):
                     ('get_overall_current', None, 'overall_current', 'current'),
                     ('get_stack_input_voltage', None, 'stack_input_voltage', 'voltage'),
                     ('get_external_input_voltage', None, 'external_input_voltage', 'voltage'),
-                    ('is_status_led_enabled', None, 'is_status_led_enabled', 'enabled'),
+                    ('is_status_led_enabled', None, 'status_led_enabled', 'enabled'),
                     ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
     SETTER_SPECS = [('enable', 'enable/set', ['servo_num']),
                     ('disable', 'disable/set', ['servo_num']),
@@ -741,7 +741,7 @@ class BrickSilentStepperProxy(DeviceProxy):
                     ('get_steps', None, 'steps', 'steps'),
                     ('get_remaining_steps', None, 'remaining_steps', 'steps'),
                     ('get_motor_current', None, 'motor_current', 'current'),
-                    ('is_enabled', None, 'is_enabled', 'enabled'),
+                    ('is_enabled', None, 'enabled', 'enabled'),
                     ('get_basic_configuration', None, 'basic_configuration', None),
                     ('get_current_position', None, 'current_position', 'position'),
                     ('get_target_position', None, 'target_position', 'position'),
@@ -755,7 +755,7 @@ class BrickSilentStepperProxy(DeviceProxy):
                     ('get_driver_status', None, 'driver_status', None),
                     ('get_time_base', None, 'time_base', None),
                     ('get_all_data', None, 'all_data', None),
-                    ('is_status_led_enabled', None, 'is_status_led_enabled', 'enabled'),
+                    ('is_status_led_enabled', None, 'status_led_enabled', 'enabled'),
                     ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
     SETTER_SPECS = [('set_max_velocity', 'max_velocity/set', ['velocity']),
                     ('set_speed_ramping', 'speed_ramping/set', ['acceleration', 'deacceleration']),
@@ -789,7 +789,7 @@ class BrickStepperProxy(DeviceProxy):
                     ('get_steps', None, 'steps', 'steps'),
                     ('get_remaining_steps', None, 'remaining_steps', 'steps'),
                     ('get_motor_current', None, 'motor_current', 'current'),
-                    ('is_enabled', None, 'is_enabled', 'enabled'),
+                    ('is_enabled', None, 'enabled', 'enabled'),
                     ('get_current_position', None, 'current_position', 'position'),
                     ('get_target_position', None, 'target_position', 'position'),
                     ('get_step_mode', None, 'step_mode', 'mode'),
@@ -797,10 +797,10 @@ class BrickStepperProxy(DeviceProxy):
                     ('get_external_input_voltage', None, 'external_input_voltage', 'voltage'),
                     ('get_current_consumption', None, 'current_consumption', 'current'),
                     ('get_decay', None, 'decay', 'decay'),
-                    ('is_sync_rect', None, 'is_sync_rect', 'sync_rect'),
+                    ('is_sync_rect', None, 'sync_rect', 'sync_rect'),
                     ('get_time_base', None, 'time_base', 'time_base'),
                     ('get_all_data', None, 'all_data', None),
-                    ('is_status_led_enabled', None, 'is_status_led_enabled', 'enabled'),
+                    ('is_status_led_enabled', None, 'status_led_enabled', 'enabled'),
                     ('get_chip_temperature', None, 'chip_temperature', 'temperature')]
     SETTER_SPECS = [('set_max_velocity', 'max_velocity/set', ['velocity']),
                     ('set_speed_ramping', 'speed_ramping/set', ['acceleration', 'deacceleration']),
