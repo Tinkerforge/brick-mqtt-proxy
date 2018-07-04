@@ -592,128 +592,17 @@ class BrickMasterProxy(DeviceProxy):
 class BrickServoProxy(DeviceProxy):
     DEVICE_CLASS = BrickServo
     TOPIC_PREFIX = 'brick/servo'
-    GETTER_SPECS = [
-                    ('is_enabled',
-                     {
-                        '0': (0,),
-                        '1': (1,),
-                        '2': (2,),
-                        '3': (3,),
-                        '4': (4,),
-                        '5': (5,),
-                        '6': (6,)
-                     },
-                     'enabled', 'enabled'
-                    ),
-                    ('get_position',
-                     {
-                        '0': (0,),
-                        '1': (1,),
-                        '2': (2,),
-                        '3': (3,),
-                        '4': (4,),
-                        '5': (5,),
-                        '6': (6,)
-                     },
-                     'position', 'position'
-                    ),
-                    ('get_current_position',
-                     {
-                        '0': (0,),
-                        '1': (1,),
-                        '2': (2,),
-                        '3': (3,),
-                        '4': (4,),
-                        '5': (5,),
-                        '6': (6,)
-                     },
-                     'current_position', 'position'
-                    ),
-                    ('get_velocity',
-                     {
-                        '0': (0,),
-                        '1': (1,),
-                        '2': (2,),
-                        '3': (3,),
-                        '4': (4,),
-                        '5': (5,),
-                        '6': (6,)
-                     },
-                     'velocity', 'velocity'
-                    ),
-                    ('get_current_velocity',
-                     {
-                        '0': (0,),
-                        '1': (1,),
-                        '2': (2,),
-                        '3': (3,),
-                        '4': (4,),
-                        '5': (5,),
-                        '6': (6,)
-                     },
-                     'current_velocity', 'velocity'
-                    ),
-                    ('get_acceleration',
-                     {
-                        '0': (0,),
-                        '1': (1,),
-                        '2': (2,),
-                        '3': (3,),
-                        '4': (4,),
-                        '5': (5,),
-                        '6': (6,)
-                     },
-                     'acceleration', 'acceleration'
-                    ),
+    GETTER_SPECS = [('is_enabled', {'0': (0,), '1': (1,), '2': (2,), '3': (3,), '4': (4,), '5': (5,), '6': (6,)}, 'enabled', 'enabled'),
+                    ('get_position', {'0': (0,), '1': (1,), '2': (2,), '3': (3,), '4': (4,), '5': (5,), '6': (6,)}, 'position', 'position'),
+                    ('get_current_position', {'0': (0,), '1': (1,), '2': (2,), '3': (3,), '4': (4,), '5': (5,), '6': (6,)}, 'current_position', 'position'),
+                    ('get_velocity', {'0': (0,), '1': (1,), '2': (2,), '3': (3,), '4': (4,), '5': (5,), '6': (6,)}, 'velocity', 'velocity'),
+                    ('get_current_velocity', {'0': (0,), '1': (1,), '2': (2,), '3': (3,), '4': (4,), '5': (5,), '6': (6,)}, 'current_velocity', 'velocity'),
+                    ('get_acceleration', {'0': (0,), '1': (1,), '2': (2,), '3': (3,), '4': (4,), '5': (5,), '6': (6,)}, 'acceleration', 'acceleration'),
                     ('get_output_voltage', None, 'output_voltage', 'voltage'),
-                    ('get_pulse_width',
-                     {
-                        '0': (0,),
-                        '1': (1,),
-                        '2': (2,),
-                        '3': (3,),
-                        '4': (4,),
-                        '5': (5,),
-                        '6': (6,)
-                     },
-                     'pulse_width', None
-                    ),
-                    ('get_degree',
-                     {
-                        '0': (0,),
-                        '1': (1,),
-                        '2': (2,),
-                        '3': (3,),
-                        '4': (4,),
-                        '5': (5,),
-                        '6': (6,)
-                     },
-                     'degree', None
-                    ),
-                    ('get_period',
-                     {
-                        '0': (0,),
-                        '1': (1,),
-                        '2': (2,),
-                        '3': (3,),
-                        '4': (4,),
-                        '5': (5,),
-                        '6': (6,)
-                     },
-                     'period', 'period'
-                    ),
-                    ('get_servo_current',
-                     {
-                        '0': (0,),
-                        '1': (1,),
-                        '2': (2,),
-                        '3': (3,),
-                        '4': (4,),
-                        '5': (5,),
-                        '6': (6,)
-                     },
-                     'current', 'current'
-                    ),
+                    ('get_pulse_width', {'0': (0,), '1': (1,), '2': (2,), '3': (3,), '4': (4,), '5': (5,), '6': (6,)}, 'pulse_width', None),
+                    ('get_degree', {'0': (0,), '1': (1,), '2': (2,), '3': (3,), '4': (4,), '5': (5,), '6': (6,)}, 'degree', None),
+                    ('get_period', {'0': (0,), '1': (1,), '2': (2,), '3': (3,), '4': (4,), '5': (5,), '6': (6,)}, 'period', 'period'),
+                    ('get_servo_current', {'0': (0,), '1': (1,), '2': (2,), '3': (3,), '4': (4,), '5': (5,), '6': (6,)}, 'current', 'current'),
                     ('get_overall_current', None, 'overall_current', 'current'),
                     ('get_stack_input_voltage', None, 'stack_input_voltage', 'voltage'),
                     ('get_external_input_voltage', None, 'external_input_voltage', 'voltage'),
