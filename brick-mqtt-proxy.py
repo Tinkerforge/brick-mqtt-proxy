@@ -128,8 +128,7 @@ from tinkerforge.bricklet_voltage_current import BrickletVoltageCurrent
 class Getter(object):
     def __init__(self, proxy, getter_name, parameters, topic_suffix, result_name):
         self.proxy = proxy
-        self.getter_name = getter_name
-        self.getter = getattr(proxy.device, self.getter_name)
+        self.getter = getattr(proxy.device, getter_name)
         self.parameters = parameters
         self.topic_suffix = topic_suffix
         self.result_name = result_name
@@ -174,17 +173,6 @@ class Getter(object):
                     payload[field] = getattr(result, field)
             else:
                 payload[self.result_name] = result
-
-            # FIXME: If a WiFi extension is not present on the stack but something
-            # else that responds to the "get_wifi_configuration" getter of the WiFi
-            # extension is i.e. WiFi Extension 2 then this function call
-            # will return garbage output. In this context garbage UTF-8 value in
-            # the "ssid" field can cause the getter to fail. Hence the following fix.
-            if self.proxy.DEVICE_CLASS.__name__ == 'BrickMaster' and self.getter_name == 'get_wifi_configuration':
-                try:
-                    payload['ssid'].decode('utf-8')
-                except:
-                    payload['ssid'] = ''
 
             self.proxy.publish_values(self.topic_suffix, **payload)
 
